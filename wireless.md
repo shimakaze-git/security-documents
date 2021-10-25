@@ -167,3 +167,43 @@ Connected to a4:12:42:xx:xx:xx (on wlp3s0)
   - 2本なら-76dBm以上
   - 1本なら-88dBm以上
   - 0本なら-88dBm未満
+
+# 信号強度
+
+信号強度を表現する最も簡単で最も一貫した方法はdBm(decibels relative to a milliwatt)。
+ミリワット(mW)に対するデシベルを表す。
+
+- mW : ミリワット（1 mW = 0 dBm）
+- RSSI : Received Signal Strength Indicator（通常0~60 or 0~255）
+- dBm : Decibels in relation to a milliwatt（通常は-30 ~ -100）
+
+dBmは、直線的なスケーリングがされているのでなく対数。
+
+- https://www.ibsjapan.co.jp/tech/details/metageek-solution/wifi-signal-strength-basics.html
+
+*理想的な信号強度*
+
+| TH 信号強度 | TH | TH 詳細 | TH 必須 |
+| :--- | :---: | :---: | ---: |
+| -30 dBm | 素晴らしい | 達成可能な最大信号強度 | N/A |
+| -67 dBm | 良好 | 非常に信頼性の高く、データパケットのタイムリーな伝送を必要とするアプリケーションのための最小信号強度 | VoIP/VoWiFi, ストリーミングビデオ |
+| -70 dBm | Okay | 信頼できるパケット伝送に必要な最小信号強度 | Email, web |
+| -80 dBm | よくない | 基本的なコネクティビティに必要な最小信号強度 | N/A |
+| -90 dBm | 使用不可 | ノイズレベルに近いかそれ以下の信号強度。殆ど機能しない | N/A |
+
+## RSSI
+
+**Received Signal Strength Indicator**
+
+- https://www.ibsjapan.co.jp/tech/details/metageek-solution/understanding-rssi.html
+
+APまたはルータからの信号をデバイスがどれくらい受信できるかを測定したもの。
+優れたワイヤレスコネクションを得るのに十分な信号であるかどうかを判断するために役立つ値。
+
+Note：RSSI値はクライアントデバイスのWi-Fiカードから取得することから(受信信号強度)、ルータまたはAPからの送信電力とは異なる。
+
+RSSIとdBm は共に信号強度を表すが、測定単位が異なる。
+RSSIは相対的な指標であり、一方、dBmは電力レベルをmW単位の絶対値で示す。
+クライアントの受信信号の**相対的品質**の測定に使用する用語ですが、*絶対値*ではない。
+
+基本的には`0dBmに近いほど優れた信号`。
