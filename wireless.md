@@ -1,3 +1,37 @@
+# 無線技術関連
+
+## IEEE 802.11
+
+- 2.4 GHz
+  - 2400MHz ~ 2500MHz
+  - IEEE 802.11b/g/n/ax
+- 5 GHz
+  - 5100MHz ~ 5800MHz
+  - IEEE 802.11a/n/ac/ax
+
+- IEEE 802.11a
+  - 5GHz
+  - Max:54Mbps 
+- IEEE 802.11b
+  - 2.4GHz
+  - Max:11Mbps
+- IEEE 802.11g
+  - 2.4GHz
+  - Max:54Mbps
+  - 互換性:IEEE 802.11b
+- IEEE 802.11n
+  - 2.4GHz/5GHz
+  - Max:600Mbps
+  - 機能:MIMO,チャネルボンディング
+- IEEE 802.11ac
+  - 5GHz
+  - Max:1.3Gbps ~ 6.93Gbps
+  - 機能:MU-MIMO,チャネルボンディング,ビームフォーミング
+- IEEE 802.11ax
+  - 2.4GHz/5GHz
+  - Max:9.6Gbps
+  - 機能:MU-MIMO,チャネルボンディング,ビームフォーミング
+
 ## nmcli command
 
 ### デバイス一覧を表示
