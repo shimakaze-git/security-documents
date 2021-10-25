@@ -2,12 +2,16 @@
 
 ## IEEE 802.11
 
+### IEEE 802.11の周波数帯
+
 - 2.4 GHz
   - 2400MHz ~ 2500MHz
   - IEEE 802.11b/g/n/ax
 - 5 GHz
   - 5100MHz ~ 5800MHz
   - IEEE 802.11a/n/ac/ax
+
+### IEEE 802.11の規格の種類
 
 - IEEE 802.11a
   - 5GHz
