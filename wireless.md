@@ -405,3 +405,11 @@ $ sudo ip link set wlp3s0 down
 $ sudo iw wlp3s0 set type managed
 $ sudo ip link set wlp3s0 up
 ```
+
+# kismet
+
+kismet
+
+# iperf3
+
+iperf3
