@@ -139,16 +139,17 @@ phy#0
 ```
 $ iw dev wlp3s0 link
 Connected to a4:12:42:xx:xx:xx (on wlp3s0)
-        SSID: aterm-xxxxxx-a
-        freq: 5500
-        RX: 77090059 bytes (270174 packets)
-        TX: 6422159 bytes (34948 packets)
-        signal: -49 dBm
-        tx bitrate: 300.0 MBit/s MCS 15 40MHz short GI
+  SSID: aterm-xxxxxx-a
+  freq: 5500
+	RX: 26039026 bytes (25143 packets)
+	TX: 2595283 bytes (15469 packets)
+	signal: -38 dBm
+	rx bitrate: 58.5 MBit/s MCS 6
+	tx bitrate: 72.2 MBit/s MCS 7 short GI
 
-        bss flags:      short-slot-time
-        dtim period:    1
-        beacon int:     100
+	bss flags:	CTS-protection short-preamble short-slot-time
+	dtim period:	1
+	beacon int:	100
 ```
 
 `Connected to` は接続先の**BSSID**を指し、APのMACアドレスでもある。
@@ -167,6 +168,58 @@ Connected to a4:12:42:xx:xx:xx (on wlp3s0)
   - 2本なら-76dBm以上
   - 1本なら-88dBm以上
   - 0本なら-88dBm未満
+- rx bitrate : 単位時間あたりに受信されるビット数
+- tx bitrate : 単位時間あたりに送信されるビット数
+  - MCSは802.11nにおけるModulation and Coding Schemeのインデックス値
+  - 「⁠short GI」はGuard Intervalに802.11標準の800ナノ秒ではなく、より短い400ナノ秒を使っていることを意味する
+- bss flags : BSS（Basic Service Set）、つまりはそのAP配下のネットワークにおける各種設定を記述
+  - **short-slot-time**は、配下に802.11bのクライアントがいないことを前提に短い*Slot Time*を使っていることを意味する
+  - **short-preamble**、**CTS-protection**などは主に802.11gの設定
+- dtim period : APがマルチキャスト/ブロードキャストフレームを送信する間隔
+  - dtime period (Delivery Traffic Indication Map) はビーコンが何回毎に、マルチキャスト/ブロードキャストフレームを送るかを指定するための値
+  - 1だと「毎回送る（beacon intが100の場合は100m sec毎に送る⁠）⁠」ことになる
+  - 2だとビーコンが2回毎になるので、200ミリ秒ごとに送られることになる
+- beacon int : APがビーコンを送信する間隔
+  - 100の場合は100m sec毎にビーコンを送信する
+
+```bash
+$ iw wlp3s0 station dump
+Station a4:12:42:xx:xx:xx (on wlp3s0)
+	inactive time:	112 ms
+	rx bytes:	412270842
+	rx packets:	398160
+	tx bytes:	29711803
+	tx packets:	189887
+	tx retries:	0
+	tx failed:	0
+	beacon loss:	0
+	rx drop misc:	707
+	signal:  	-38 dBm
+	signal avg:	93 dBm
+	tx bitrate:	72.2 MBit/s MCS 7 short GI
+	tx duration:	0 us
+	rx bitrate:	65.0 MBit/s MCS 7
+	rx duration:	0 us
+	authorized:	yes
+	authenticated:	yes
+	associated:	yes
+	preamble:	long
+	WMM/WME:	yes
+	MFP:		no
+	TDLS peer:	no
+	DTIM period:	1
+	beacon interval:100
+	CTS protection:	yes
+	short preamble:	yes
+	short slot time:yes
+	connected time:	3557 seconds
+	associated at [boottime]:	46531.524s
+	associated at:	1635237431627 ms
+	current time:	1635240988612 ms
+```
+
+- tx retries : 再送信した回数
+- ⁠tx failed : 再送信したものの結果的に失敗になった回数
 
 # 信号強度
 
