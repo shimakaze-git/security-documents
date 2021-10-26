@@ -221,6 +221,110 @@ Station a4:12:42:xx:xx:xx (on wlp3s0)
 - tx retries : 再送信した回数
 - ⁠tx failed : 再送信したものの結果的に失敗になった回数
 
+## 無線LANデバイスのサポート状況を確認
+
+```bash
+$ iw phy
+
+Wiphy phy0
+        max # scan SSIDs: 4
+        max scan IEs length: 2257 bytes
+        max # sched scan SSIDs: 0
+        max # match sets: 0
+        RTS threshold: 2347
+        Retry short limit: 7
+        Retry long limit: 4
+        Coverage class: 0 (up to 0m)
+        Device supports RSN-IBSS.
+        Supported Ciphers:
+                * WEP40 (00-0f-ac:1)
+                * WEP104 (00-0f-ac:5)
+                * TKIP (00-0f-ac:2)
+                * CCMP-128 (00-0f-ac:4)
+                * CCMP-256 (00-0f-ac:10)
+                * GCMP-128 (00-0f-ac:8)
+                * GCMP-256 (00-0f-ac:9)
+                * CMAC (00-0f-ac:6)
+                * CMAC-256 (00-0f-ac:13)
+                * GMAC-128 (00-0f-ac:11)
+                * GMAC-256 (00-0f-ac:12)
+        Available Antennas: TX 0 RX 0
+        Supported interface modes:
+                 * IBSS
+                 * managed
+                 * AP
+                 * AP/VLAN
+                 * monitor
+                 * mesh point
+                 * P2P-client
+                 * P2P-GO
+        Band 1:
+                Capabilities: 0x186e
+                        HT20/HT40
+                        SM Power Save disabled
+                        RX HT20 SGI
+                        RX HT40 SGI
+                        No RX STBC
+                        Max AMSDU length: 7935 bytes
+                        DSSS/CCK HT40
+                Maximum RX AMPDU length 65535 bytes (exponent: 0x003)
+                Minimum RX AMPDU time spacing: 16 usec (0x07)
+                HT Max RX data rate: 150 Mbps
+                HT TX/RX MCS rate indexes supported: 0-7, 32
+                Bitrates (non-HT):
+                        * 1.0 Mbps
+                        * 2.0 Mbps
+                        * 5.5 Mbps
+                        * 11.0 Mbps
+                        * 6.0 Mbps
+                        * 9.0 Mbps
+                        * 12.0 Mbps
+                        * 18.0 Mbps
+                        * 24.0 Mbps
+                        * 36.0 Mbps
+                        * 48.0 Mbps
+                        * 54.0 Mbps
+                Frequencies:
+                        * 2412 MHz [1] (20.0 dBm)
+                        * 2417 MHz [2] (20.0 dBm)
+                        * 2422 MHz [3] (20.0 dBm)
+```
+
+- `Supported Ciphers` : 対応しているセキュリティプロトコル
+  - WEP40 (00-0f-ac:1) : 40bit 鍵長のWEP
+  - WEP104 (00-0f-ac:5) : 104bit 鍵長のWEP
+  - TKIP (00-0f-ac:2) : WPAのころに策定された暗号化プロトコル
+  - CCMP-128 (00-0f-ac:4) : 128bit 暗号化アルゴリズムとしてAESを利用しているWPA2標準のプロトコル
+  - CCMP-256 (00-0f-ac:10) : 256bit 暗号化アルゴリズムとしてAESを利用しているWPA2標準のプロトコル
+  - GCMP-128 (00-0f-ac:8)
+  - GCMP-256 (00-0f-ac:9)
+  - CMAC (00-0f-ac:6)
+  - CMAC-256 (00-0f-ac:13)
+  - GMAC-128 (00-0f-ac:11)
+  - GMAC-256 (00-0f-ac:12)
+
+- Supported interface modes : インターフェースのモード
+  - IBSS : アドホック接続で使われるモード
+  - managed : 通常の無線LANクライアントとして利用する場合のモード
+  - AP : masterモードとも呼ばれるアクセスポイントとして利用するモード
+  - AP/VLAN : VLANを使うモード
+  - monitor : ネットワークトラフィックを監視するモード
+
+- Band x : 対応周波数帯域のセット
+  - Bitrates : ビットレートの理論値
+  - Frequencies : 周波数帯域
+  - HT TX/RX MCS rate indexes supproted : 前述のMCSでサポートしているインデックスを列挙
+
+IBSSはアドホック接続で使われるモード，managedは通常の無線LANクライアントとして利用する場合のモード，APはmasterモードとも呼ばれるアクセスポイントとして利用するモードです。AP/VLANはVLANを使うモードで，monitorはネットワークトラフィックを監視するモードになります。
+
+## アクセスポイントリストを表示
+
+アクセスポイントリストを表示したい
+
+```bash
+$ sudo iw wlan0 scan
+```
+
 # 信号強度
 
 信号強度を表現する最も簡単で最も一貫した方法はdBm(decibels relative to a milliwatt)。
@@ -260,3 +364,44 @@ RSSIは相対的な指標であり、一方、dBmは電力レベルをmW単位�
 クライアントの受信信号の**相対的品質**の測定に使用する用語ですが、*絶対値*ではない。
 
 基本的には`0dBmに近いほど優れた信号`。
+
+# wavemon 信号強度の表示
+
+信号強度のリアルタイムグラフを表示するツール**wavemon**。
+
+- https://raspida.com/wifi-wavemon
+
+# horst
+
+複数のチャンネルの信号強度やノード数を表示するツール
+
+## Usage
+
+horstはチャンネルを変更しながら未接続のAPからのパケットなども受信するために、インターフェースをモニターモードにする必要がある
+
+```bash
+$ sudo iw wlp3s0 interface add mon0 type monitor
+$ sudo horst -i mon0
+```
+
+※上記でうまく動かない時は、一度ネットワークを切断し、wlp3s0そのものをモニターモードにする方法もある
+
+```bash
+$ sudo ip link set wlp3s0 down
+$ sudo iw wlp3s0 set type monitor
+$ sudo ip link set wlp3s0 up
+```
+
+作成したmon0は次のように削除
+
+```bash
+$ sudo iw mon0 del
+```
+
+wlp3s0をモニターモードにした場合は次のように戻す
+
+```bash
+$ sudo ip link set wlp3s0 down
+$ sudo iw wlp3s0 set type managed
+$ sudo ip link set wlp3s0 up
+```
