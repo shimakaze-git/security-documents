@@ -418,7 +418,7 @@ iperf3
 
 **iwconfig**や**ifconfig**は*非推奨*のコマンドとなっているため、`ip`コマンドを使用していくのがインターフェース制御のコマンドとなる。
 
-## インターフェースの停止と起動
+### インターフェースの停止と起動
 
 インターフェースの*停止(down)*と*起動(up)*
 
@@ -430,10 +430,39 @@ $ ip link set dev <interface> down
 $ ip link set dev <interface> up
 ```
 
-## 利用可能なインターフェース
+### 利用可能なインターフェース
 
 現在、利用可能なインターフェースの一覧
 
 ```bash
 $ ip link
+```
+
+## モニター(Monitor) モードに変更する
+
+モニターモードに変更し、用が済んだ場合の通常のManageモードに戻す方法も記載する
+
+### インターフェースをモニターモードに変更
+
+```bash
+# <interface> (wlan0) の停止
+$ ip link set dev <interface> down
+
+# wpa_supplicantを止める必要もある場合がある
+# $ systemctl stop wpa_supplicant.service
+# $ systemctl mask wpa_supplicant.service
+
+# <interface>をモニターモードに変更する
+$ iw dev <interface> set type monitor
+
+# <interface> (wlan0) の起動
+$ ip link set dev <interface> up
+```
+
+### インターフェースを管理（通常）モードにする
+
+```bash
+$ ip link set dev <interface> down
+$ systemctl unmask wpa_supplicant.service
+$ iw dev <interface> set type managed
 ```
