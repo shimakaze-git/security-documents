@@ -413,3 +413,27 @@ kismet
 # iperf3
 
 iperf3
+
+# ipコマンドによるインターフェース制御
+
+**iwconfig**や**ifconfig**は*非推奨*のコマンドとなっているため、`ip`コマンドを使用していくのがインターフェース制御のコマンドとなる。
+
+## インターフェースの停止と起動
+
+インターフェースの*停止(down)*と*起動(up)*
+
+```bash
+# <interface> (wlan0) の停止
+$ ip link set dev <interface> down
+
+# <interface> (wlan0) の起動
+$ ip link set dev <interface> up
+```
+
+## 利用可能なインターフェース
+
+現在、利用可能なインターフェースの一覧
+
+```bash
+$ ip link
+```
