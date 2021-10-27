@@ -471,3 +471,27 @@ $ systemctl unmask wpa_supplicant.service
 # <interface> を管理モードに戻す.
 $ iw dev <interface> set type managed
 ```
+
+# tcpdump
+
+`tcpdump`は**libpcap**を利用したネットワークトラフィックをキャプチャ・表示するツール
+
+- https://gihyo.jp/admin/serial/01/ubuntu-recipe/0367?page=1
+
+
+```bash
+# 10パケット受信したら終了
+$ sudo tcpdump -c 10
+
+# -iでキャプチャするネットワークインターフェースを指定する.
+$ sudo tcpdump -c 10 -i wlan0
+
+$ sudo tcpdump -P 
+```
+
+- -c : 指定された数のパケットを受信したら終了する
+- -i : キャプチャするネットワークインターフェースを指定
+- -Q : 受信パケットか送信パケットかを制約する
+  - in : 受信パケットのみ
+  - out : 送信パケットのみ
+  - inout : 送受信両方のパケット
