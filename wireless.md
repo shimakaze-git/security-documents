@@ -462,7 +462,12 @@ $ ip link set dev <interface> up
 ### インターフェースを管理（通常）モードにする
 
 ```bash
+# <interface> (wlan0) の停止
 $ ip link set dev <interface> down
+
+# wpa_supplicantをunmaskにする.
 $ systemctl unmask wpa_supplicant.service
+
+# <interface> を管理モードに戻す.
 $ iw dev <interface> set type managed
 ```
