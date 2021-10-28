@@ -486,7 +486,8 @@ $ sudo tcpdump -c 10
 # -iでキャプチャするネットワークインターフェースを指定する.
 $ sudo tcpdump -c 10 -i wlan0
 
-$ sudo tcpdump -P 
+# inout
+$ sudo tcpdump -Q inout
 ```
 
 - -c : 指定された数のパケットを受信したら終了する
