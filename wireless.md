@@ -509,3 +509,18 @@ $ sudo tcpdump -Q inout
 ```bash
 $ sudo tcpdump -i wlan0 -X -c 5 port 80
 ```
+
+## キャプチャ内容を保存して再生する
+
+tcpdumpは `libpcap形式` のバイナリデータとしてパケットの内容を保存する。
+「-w」オプションでパケットの内容を保存できる。
+
+```bash
+$ sudo tcpdump -i wlan0 -w yano.pcap
+```
+
+一度保存すれば「-r」オプションで当時のトラフィックの様子を再度確認
+
+```bash
+$ sudo tcpdump -r yano.pcap port 80
+```
