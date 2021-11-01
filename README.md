@@ -8,14 +8,16 @@ Install *Greenbone Vulnerability Management*
 
 - [install gvm script](./install_gvm.sh)
 
+
 ### Install
 
 ```bash
-# $ chmod +x install_gvm.sh
-# $ sudo ./install_gvm.sh 
-# $ sudo ./install_gvm.sh
-
-$ cd install_gvm
-$ chmod +x *.sh
-$ sudo ./main.sh
+$ chmod +x install_gvm.sh
+$ sudo ./install_gvm.sh 
+$ sudo ./install_gvm.sh
 ```
+
+### 参考資料
+
+- https://github.com/yu210148/gvm_install/blob/master/install_gvm.sh
+- https://gist.github.com/ffund/f9c06f77569a3865e9ca92b9455bd90c
