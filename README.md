@@ -11,5 +11,11 @@ Install *Greenbone Vulnerability Management*
 ### Install
 
 ```bash
-$ sudo ./install_gvm.sh
+# $ chmod +x install_gvm.sh
+# $ sudo ./install_gvm.sh 
+# $ sudo ./install_gvm.sh
+
+$ cd install_gvm
+$ chmod +x *.sh
+$ sudo ./main.sh
 ```
