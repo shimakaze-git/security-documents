@@ -66,3 +66,13 @@ Cookieなどの閲覧履歴を確実に削除
 ## Over VPN
 
 VPN経由でTorを使用するのが推奨されている。
+
+FireFoxとChromeの拡張機能である「`VPN Free - Betternet VPN Proxy`」を主に使用する。
+
+### おすすめの無料VPN
+
+[こちら](https://ja.vpnmentor.com/blog/%EF%BC%88%E6%9C%AC%E5%BD%93%E3%81%AB%E7%84%A1%E6%96%99%E3%81%AE%EF%BC%89%E3%83%99%E3%82%B9%E3%83%88vpn%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/)を参考にして、無料VPNを選択する。
+
+- [hide.me](https://hide.me/ja)
+- [ProtonVpn](https://protonvpn.com/free-vpn)
+- [windscribe](https://jpn.windscribe.com)
