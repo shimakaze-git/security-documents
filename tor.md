@@ -3,7 +3,9 @@
 Tor環境をUbuntu 20.04にインストール。
 UbuntuのメインリポジトリのTorは常に古いものであるため、公式リポジトリから最新バージョンをインストールする方法を記述。
 
-# How to Install
+- DuckDuckGo : Dafault Search Engine
+
+## How to Install
 
 ```bash
 # apt-transport-httpsをインストールする.
@@ -39,3 +41,28 @@ $ systemctl status tor
 # Torブラウザのインストール
 $ sudo apt install -y torbrowser-launcher
 ```
+
+## How to Configure
+
+### Japanese Language
+
+- 1 : Tor Browserを起動
+- 2 : URLに `about:preferences`と入力
+- 3 : Generalにある`Language`から、`Search for more languages…`をクリック
+- 4 : `Japanese`を探してクリックして、`Add`をクリックする
+- 5 : `OK`ボタンをクリック
+- 6 : `適用して再起動`をクリックして、再起動を行って設定完了
+
+### Setup Cookie Configure
+
+Cookieなどの閲覧履歴を確実に削除
+
+- 1 : Tor Browserを起動
+- 2 : URLに `about:preferences`と入力
+- 3 : `プライバシーとセキュリティ`を選択
+- 4 : `（Tor Browser に）記憶させる履歴を詳細設定する」`を選択
+- 5 : `常にプライベートブラウジングモード`にチェックを入れて再起動
+
+## Over VPN
+
+VPN経由でTorを使用するのが推奨されている。
