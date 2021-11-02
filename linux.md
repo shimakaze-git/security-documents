@@ -73,10 +73,8 @@ graphical.target reached after 1min 2.213s in userspace
 
 設定するとスプラッシュを映すか、プロセスの処理(文字列が流れる)を映すかを設定できる。
 
-- スプラッシュにする場合
-
 ```bash
-# プラッシュにする場合
+# スプラッシュにする場合
 GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash”
 
 # 文字列にする場合
@@ -86,4 +84,36 @@ GRUB_CMDLINE_LINUX_DEFAULT=”quiet nosplash”
 GRUB_CMDLINE_LINUX_DEFAULT=”splash”
 ```
 
+## ディスクアクセスを高速化するpreload
 
+`preload`は、バックグラウンドで動作して、ユーザの利用するアプリケーションを学習します。よく使うアプリケーションをメモリにキャッシュします。
+
+Windowsで似たものとしては、`Windows Superfetch`がある。
+
+### How to Install
+
+```bash
+$ sudo apt install -y preload
+```
+
+### Configure
+
+設定ファイル
+
+```bash
+$ vim /etc/defaults/preload
+```
+
+### Logs
+
+```bash
+# ログが記録されます
+$ /var/log/preload.log
+
+# キャッシュされたファイルや統計情報が記録
+$ /var/lib/preload/preload.state
+```
+
+### Link
+
+- https://kaworu.jpn.org/ubuntu/Linux%E3%81%AE%E3%83%87%E3%82%A3%E3%82%B9%E3%82%AF%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%82%92%E9%AB%98%E9%80%9F%E5%8C%96%E3%81%99%E3%82%8Bpreload%E3%81%AE%E5%B0%8E%E5%85%A5
