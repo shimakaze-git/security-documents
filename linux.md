@@ -101,7 +101,7 @@ $ sudo apt install -y preload
 設定ファイル
 
 ```bash
-$ vim /etc/defaults/preload
+$ vim /etc/default/preload
 ```
 
 ### Logs
