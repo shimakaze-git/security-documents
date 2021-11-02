@@ -109,6 +109,7 @@ fi
 ##############################################################################
 # GVMのユーザーを作成し、必要なパッケージ類をインストールして、環境を整備する。
 ##############################################################################
+echo 'apt update'
 apt update
 apt upgrade -y 
 
@@ -309,7 +310,8 @@ else
     sed 's/Defaults\s.*secure_path=\"\/usr\/local\/sbin:\/usr\/local\/bin:\/usr\/sbin:\/usr\/bin:\/sbin:\/bin:\/snap\/bin\"/Defaults secure_path=\"\/usr\/local\/sbin:\/usr\/local\/bin:\/usr\/sbin:\/usr\/bin:\/sbin:\/bin:\/snap\/bin:\/opt\/gvm\/sbin:\/opt\/gvm\/bin"/g' /etc/sudoers | EDITOR='tee' visudo
 fi
 
-echo "gvm ALL = NOPASSWD: /opt/gvm/sbin/gsad" >> /etc/sudoers.d/gvm
+# echo "gvm ALL = NOPASSWD: /opt/gvm/sbin/gsad" >> /etc/sudoers.d/gvm
+echo "gvm ALL = NOPASSWD: /opt/gvm/sbin/gsad --listen=0.0.0.0 --port=9392" >> /etc/sudoers.d/gvm
 
 # Build and Install Greenbone Vulnerability Manager
 # Greenbone VulnerabilityManagerを構築してインストールする.
@@ -455,7 +457,8 @@ sudo -Hiu gvm echo "/opt/gvm/sbin/gvmd --osp-vt-update=/opt/gvm/var/run/ospd.soc
 
 # Start GSA
 # Greenbone Secuirty Assistantを起動する
-sudo -Hiu gvm echo "sudo /opt/gvm/sbin/gsad" | sudo -Hiu gvm tee -a /opt/gvm/start.sh
+# sudo -Hiu gvm echo "sudo /opt/gvm/sbin/gsad" | sudo -Hiu gvm tee -a /opt/gvm/start.sh
+sudo -Hiu gvm echo "sudo /opt/gvm/sbin/gsad --listen=0.0.0.0 --port=9392" | sudo -Hiu gvm tee -a /opt/gvm/start.sh
 
 # Wait a moment for the above to start up
 sudo -Hiu gvm echo "sleep 10" | sudo -Hiu gvm tee -a /opt/gvm/start.sh
@@ -563,7 +566,8 @@ echo "User=gvm" >> /etc/systemd/system/gsa.service
 echo "Group=gvm" >> /etc/systemd/system/gsa.service
 echo "Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/gvm/bin:/opt/gvm/sbin:/opt/gvm/.local/bin" >> /etc/systemd/system/gsa.service
 echo "Environment=PYTHONPATH=/opt/gvm/lib/python$PY3VER/site-packages" >> /etc/systemd/system/gsa.service
-echo -e "ExecStart=/usr/bin/sudo /opt/gvm/sbin/gsad" >> /etc/systemd/system/gsa.service
+# echo -e "ExecStart=/usr/bin/sudo /opt/gvm/sbin/gsad" >> /etc/systemd/system/gsa.service
+echo -e "ExecStart=/usr/bin/sudo /opt/gvm/sbin/gsad --listen=0.0.0.0 --port=9392" >> /etc/systemd/system/gsa.service
 echo "RemainAfterExit=yes" >> /etc/systemd/system/gsa.service
 echo -e "\n" >> /etc/systemd/system/gsa.service
 echo "[Install]" >> /etc/systemd/system/gsa.service
