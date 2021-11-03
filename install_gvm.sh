@@ -41,6 +41,21 @@ setup_init () {
 
     # cron情報を削除
     sudo crontab -u gvm -r
+
+    # git clone したソースを削除
+    rm -rf /tmp/gvm-source
+
+    # systemdのサービス類の削除
+    systemctl stop ospd-openvas
+    systemctl stop gvm.{path,service}
+    systemctl stop gsa.{path,service}
+
+    rm /etc/systemd/system/ospd-openvas.*
+    rm /etc/systemd/system/gvm.*
+    rm /etc/systemd/system/gsa.*
+
+    systemctl daemon-reload
+    systemctl reset-failed
 }
 
 
@@ -159,6 +174,7 @@ yarn upgrade
 apt -y install postgresql postgresql-contrib postgresql-server-dev-all
 systemctl restart postgresql
 sudo -Hiu postgres createuser gvm
+sudo -Hiu postgres psql -c "drop database gvmd;"
 sudo -Hiu postgres createdb -O gvm gvmd
 sudo -Hiu postgres psql -c 'create role dba with superuser noinherit;' gvmd
 sudo -Hiu postgres psql -c 'grant dba to gvm;' gvmd
@@ -180,6 +196,11 @@ ID=`grep ^ID= /etc/os-release | sed 's/ID=//g'`
 #    sed -i 's/"12" "11" "10"/"13" "12" "11" "10"/g' /usr/share/cmake-3.18/Modules/FindPostgreSQL.cmake
 #fi
 
+# /opt/gvm/binなどが既にある場合は削除
+sed -i "s/:\/opt\/gvm\/bin//g" /etc/environment
+sed -i "s/:\/opt\/gvm\/sbin//g" /etc/environment
+sed -i "s/:\/opt\/gvm\/.local\/bin//g" /etc/environment
+
 sed -i 's/\"$/\:\/opt\/gvm\/bin\:\/opt\/gvm\/sbin\:\/opt\/gvm\/\.local\/bin\"/g' /etc/environment
 cat /etc/environment
 
@@ -192,24 +213,38 @@ pwd
 
 if [ $GVMVERSION = "20" ]; then
     sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/gvm-libs.git
-    sudo -Hiu gvm git clone https://github.com/greenbone/openvas-smb.git
-    sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/openvas.git
-    sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/ospd.git
-    sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/ospd-openvas.git
     sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/gvmd.git
     sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/gsa.git
-    sudo -Hiu gvm git clone https://github.com/greenbone/python-gvm.git
+    sudo -Hiu gvm git clone https://github.com/greenbone/openvas-smb.git
+    sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/openvas.git
+    sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/ospd-openvas.git
     sudo -Hiu gvm git clone https://github.com/greenbone/gvm-tools.git
+    sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/ospd.git
+    sudo -Hiu gvm git clone https://github.com/greenbone/python-gvm.git
 elif [ $GVMVERSION = "21" ]; then
     sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/gvm-libs.git
-    sudo -Hiu gvm git clone -b v21.4.0 https://github.com/greenbone/openvas-smb.git
-    sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/openvas.git
-    sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/ospd.git
-    sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/ospd-openvas.git
+    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/gvm-libs.git
+
     sudo -Hiu gvm git clone -b v21.4.2 https://github.com/greenbone/gvmd.git
+    # sudo -Hiu gvm git clone -b v21.4.4 https://github.com/greenbone/gvmd.git
+
     sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/gsa.git
-    sudo -Hiu gvm git clone -b v21.6.0 https://github.com/greenbone/python-gvm.git
+    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/gsa.git
+
+    sudo -Hiu gvm git clone -b v21.4.0 https://github.com/greenbone/openvas-smb.git
+
+    sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/openvas.git
+    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/openvas.git
+
+    sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/ospd-openvas.git
+    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/ospd-openvas.git
+
     sudo -Hiu gvm git clone -b v21.6.1 https://github.com/greenbone/gvm-tools.git
+
+    sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/ospd.git
+    # sudo -Hiu gvm git clone -b v21.4.4 https://github.com/greenbone/ospd.git
+
+    sudo -Hiu gvm git clone -b v21.6.0 https://github.com/greenbone/python-gvm.git
 fi
 
 sudo -Hiu gvm cp --recursive /opt/gvm/* /tmp/gvm-source/
@@ -615,7 +650,7 @@ echo "[Install]" >> /etc/systemd/system/gsa.path
 echo "WantedBy=multi-user.target" >> /etc/systemd/system/gsa.path
 
 systemctl daemon-reload
-systemctl enable --now openvas
+systemctl enable --now ospd-openvas
 systemctl enable --now gvm.{path,service}
 systemctl enable --now gsa.{path,service}
 
