@@ -38,6 +38,9 @@ setup_init () {
     # 2つのディレクトリを削除する.
     sudo rm -rf /opt/gvm
     sudo rm -rf /tmp/gvm-source
+
+    # cron情報を削除
+    sudo crontab -u gvm -r
 }
 
 
@@ -509,30 +512,56 @@ fi
 
 # Create systemd services for OpenVAS Scanner, GSA, and GVM services
 # OpenVAS Scanner、GSA、GVMサービス用のsystemdサービスの作成
-echo "[Unit]" > /etc/systemd/system/openvas.service
-echo "Description=Control the OpenVAS service" >> /etc/systemd/system/openvas.service
-echo "After=redis.service" >> /etc/systemd/system/openvas.service
-echo "After=postgresql.service" >> /etc/systemd/system/openvas.service
-echo -e "\n" >> /etc/systemd/system/openvas.service
-echo "[Service]" >> /etc/systemd/system/openvas.service
-echo "ExecStartPre=-rm /opt/gvm/var/run/ospd-openvas.pid /opt/gvm/var/run/ospd.sock /opt/gvm/var/run/gvmd.sock" >> /etc/systemd/system/openvas.service
-echo "Type=simple" >> /etc/systemd/system/openvas.service
-echo "User=gvm" >> /etc/systemd/system/openvas.service
-echo "Group=gvm" >> /etc/systemd/system/openvas.service
-echo "Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/gvm/bin:/opt/gvm/sbin:/opt/gvm/.local/bin" >> /etc/systemd/system/openvas.service
+
+## ospd-openvasの設定
+# echo "[Unit]" > /etc/systemd/system/openvas.service
+# echo "Description=Control the OpenVAS service" >> /etc/systemd/system/openvas.service
+# echo "After=redis.service" >> /etc/systemd/system/openvas.service
+# echo "After=postgresql.service" >> /etc/systemd/system/openvas.service
+# echo -e "\n" >> /etc/systemd/system/openvas.service
+# echo "[Service]" >> /etc/systemd/system/openvas.service
+# echo "ExecStartPre=-rm /opt/gvm/var/run/ospd-openvas.pid /opt/gvm/var/run/ospd.sock /opt/gvm/var/run/gvmd.sock" >> /etc/systemd/system/openvas.service
+# echo "Type=simple" >> /etc/systemd/system/openvas.service
+# echo "User=gvm" >> /etc/systemd/system/openvas.service
+# echo "Group=gvm" >> /etc/systemd/system/openvas.service
+# echo "Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/gvm/bin:/opt/gvm/sbin:/opt/gvm/.local/bin" >> /etc/systemd/system/openvas.service
+
+# PY3VER=`python3 --version | grep -o [0-9]\.[0-9]`
+# echo "Environment=PYTHONPATH=/opt/gvm/lib/python$PY3VER/site-packages" >> /etc/systemd/system/openvas.service
+
+# echo -e "ExecStart=/usr/bin/python3 /opt/gvm/bin/ospd-openvas --pid-file /opt/gvm/var/run/ospd-openvas.pid --log-file /opt/gvm/var/log/gvm/ospd-openvas.log --lock-file-dir /opt/gvm/var/run -u /opt/gvm/var/run/ospd.sock" >> /etc/systemd/system/openvas.service
+# echo "RemainAfterExit=yes" >> /etc/systemd/system/openvas.service
+# echo -e "\n" >> /etc/systemd/system/openvas.service
+# echo "[Install]" >> /etc/systemd/system/openvas.service
+# echo "WantedBy=multi-user.target" >> /etc/systemd/system/openvas.service
+
+echo "[Unit]" > /etc/systemd/system/ospd-openvas.service
+echo "Description=Control the OpenVAS service" >> /etc/systemd/system/ospd-openvas.service
+echo "After=redis.service" >> /etc/systemd/system/ospd-openvas.service
+echo "After=postgresql.service" >> /etc/systemd/system/ospd-openvas.service
+echo -e "\n" >> /etc/systemd/system/ospd-openvas.service
+echo "[Service]" >> /etc/systemd/system/ospd-openvas.service
+echo "ExecStartPre=-rm /opt/gvm/var/run/ospd-openvas.pid /opt/gvm/var/run/ospd.sock /opt/gvm/var/run/gvmd.sock" >> /etc/systemd/system/ospd-openvas.service
+echo "Type=simple" >> /etc/systemd/system/ospd-openvas.service
+echo "User=gvm" >> /etc/systemd/system/ospd-openvas.service
+echo "Group=gvm" >> /etc/systemd/system/ospd-openvas.service
+echo "Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/opt/gvm/bin:/opt/gvm/sbin:/opt/gvm/.local/bin" >> /etc/systemd/system/ospd-openvas.service
 
 PY3VER=`python3 --version | grep -o [0-9]\.[0-9]`
-echo "Environment=PYTHONPATH=/opt/gvm/lib/python$PY3VER/site-packages" >> /etc/systemd/system/openvas.service
+echo "Environment=PYTHONPATH=/opt/gvm/lib/python$PY3VER/site-packages" >> /etc/systemd/system/ospd-openvas.service
 
-echo -e "ExecStart=/usr/bin/python3 /opt/gvm/bin/ospd-openvas --pid-file /opt/gvm/var/run/ospd-openvas.pid --log-file /opt/gvm/var/log/gvm/ospd-openvas.log --lock-file-dir /opt/gvm/var/run -u /opt/gvm/var/run/ospd.sock" >> /etc/systemd/system/openvas.service
-echo "RemainAfterExit=yes" >> /etc/systemd/system/openvas.service
-echo -e "\n" >> /etc/systemd/system/openvas.service
-echo "[Install]" >> /etc/systemd/system/openvas.service
-echo "WantedBy=multi-user.target" >> /etc/systemd/system/openvas.service
+echo -e "ExecStart=/usr/bin/python3 /opt/gvm/bin/ospd-openvas --pid-file /opt/gvm/var/run/ospd-openvas.pid --log-file /opt/gvm/var/log/gvm/ospd-openvas.log --lock-file-dir /opt/gvm/var/run -u /opt/gvm/var/run/ospd.sock" >> /etc/systemd/system/ospd-openvas.service
+echo "RemainAfterExit=yes" >> /etc/systemd/system/ospd-openvas.service
+echo -e "\n" >> /etc/systemd/system/ospd-openvas.service
+echo "[Install]" >> /etc/systemd/system/ospd-openvas.service
+echo "WantedBy=multi-user.target" >> /etc/systemd/system/ospd-openvas.service
 
+
+## gvmの設定
 echo "[Unit]" > /etc/systemd/system/gvm.service
 echo "Description=Control the OpenVAS GVM service" >> /etc/systemd/system/gvm.service
-echo "After=openvas.service" >> /etc/systemd/system/gvm.service
+# echo "After=openvas.service" >> /etc/systemd/system/gvm.service
+echo "After=ospd-openvas.service" >> /etc/systemd/system/gvm.service
 echo -e "\n" >> /etc/systemd/system/gvm.service
 echo "[Service]" >> /etc/systemd/system/gvm.service
 echo "Type=simple" >> /etc/systemd/system/gvm.service
@@ -556,9 +585,11 @@ echo -e "\n" >> /etc/systemd/system/gvm.path
 echo "[Install]" >> /etc/systemd/system/gvm.path
 echo "WantedBy=multi-user.target" >> /etc/systemd/system/gvm.path
 
+## gsaの設定
 echo "[Unit]" > /etc/systemd/system/gsa.service
 echo "Description=Control the OpenVAS GSA service" >> /etc/systemd/system/gsa.service
-echo "After=openvas.service" >> /etc/systemd/system/gsa.service
+# echo "After=openvas.service" >> /etc/systemd/system/gsa.service
+echo "After=ospd-openvas.service" >> /etc/systemd/system/gsa.service
 echo -e "\n" >> /etc/systemd/system/gsa.service
 echo "[Service]" >> /etc/systemd/system/gsa.service
 echo "Type=simple" >> /etc/systemd/system/gsa.service
@@ -593,12 +624,12 @@ systemctl enable --now gsa.{path,service}
 ##############################################################################
 if $API ; then
     apt -y install socat
-    
+
     # add gmp user
     adduser --gecos "" --shell /bin/sh --disabled-password --home /opt/gmp gmp
     adduser gmp gvm
     passwd -d gmp
-    
+
     # enable Passwordless login. It's an requirement for gmp, but makes your sshd config little less secure !!
     sed -i 's/auth\t\[success=1 default=ignore]\t\tpam_unix.so nullok_secure/# auth\t[success=1 default=ignore]\t\tpam_unix.so nullok_secure\nauth\t[success=1 default=ignore]\t\tpam_unix.so nullok\n/' /etc/pam.d/common-auth 
 
@@ -622,19 +653,23 @@ su gvm -c /opt/gvm/bin/greenbone-nvt-sync
 /opt/gvm/sbin/openvas --update-vt-info
 # give the db a chance to update
 echo "Sleeping for 5 minutes to let the DB finish the NVT update"
-sleep 300
+# sleep 300
+sleep 100
 # update GVMD_DATA
 su gvm -c "/opt/gvm/sbin/greenbone-feed-sync --type GVMD_DATA"
 echo "Sleeping for 5 minutes to let the DB finish the GVMD_DATA update"
-sleep 300
+# sleep 300
+sleep 100
 # update SCAP
 su gvm -c "/opt/gvm/sbin/greenbone-feed-sync --type SCAP"
 echo "Sleeping for 5 minutes to let the DB finish the SCAP update"
-sleep 300
+# sleep 300
+sleep 100
 # update CERT
 su gvm -c "/opt/gvm/sbin/greenbone-feed-sync --type CERT"
 echo "Sleeping for 5 minutes to let the DB finish the CERT update"
-sleep 300
+# sleep 300
+sleep 100
 ############################################################################
 
 # REMIND USER TO CHANGE DEFAULT PASSWORD
