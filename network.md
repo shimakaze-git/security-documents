@@ -118,3 +118,82 @@ LAN内で利用されているIPアドレスを調べる
 ```bash
 $ sudo arp-scan -I スキャンを行うネットワークアダプタ(eth0など) -l
 ```
+
+## netcat (nc)
+
+コマンドラインからTCPとUDP接続などを利用してデータを送受信するためのツール。
+宛先を指定して対象ホストに接続する(クライアント側になる)ことだけでなく、自らサーバーになりコネクションを待ち受けるための受信側になることも可能。(送信側だけならtelnetでもできる)
+
+### Usage
+
+```bash
+$ nc {接続先ホスト} {ポート暗号}
+```
+
+192.168.0.5というホストのHTTP(WEB)サービス(80/tcp)へ接続する例
+
+```bash
+$ nc 192.168.0.5 80
+HEAD / HTTP/1.0
+```
+
+`nc 192.168.0.5 80`と打った後に、[**HEAD / HTTP/1.0**]と打ち込み、改行を2回行うと、[**HEAD / HTTP/1.0**]という内容が接続先のホストに送信されます。
+送信すると下記のようにHTTPのレスポンスヘッダが返ってきます。
+
+```bash
+$ nc 192.168.0.5 80
+HEAD / HTTP/1.0
+
+HTTP/1.0 200 OK
+Date: Wed, 03 Nov 2021 12:28:18 GMT
+Server: Apache
+Last-Modified: Wed, 03 Nov 2021 12:23:37 GMT
+ETag: "xxxzy-01-5187a909b1234"
+Accept-Ranges: bytes
+Content-Length: 39
+Connection: close
+Content-type: text/html
+
+```
+
+telnetでも同じことができます。
+
+```bash
+$ telnet 192.168.0.5 80
+Trying 192.168.0.5...
+Connected to 192.168.0.5.
+Escape character is '^]'.
+HEAD / HTTP/1.0
+
+HTTP/1.0 200 OK
+Date: Wed, 03 Nov 2021 12:28:18 GMT
+Server: Apache
+Last-Modified: Wed, 03 Nov 2021 12:23:37 GMT
+ETag: "xxxzy-01-5187a909b1234"
+Accept-Ranges: bytes
+Content-Length: 39
+Connection: close
+Content-type: text/html
+
+Connection closed by foreign host.
+```
+
+ChromeやSafariといったWEbブラウザなどでWebページを閲覧すると、Webブラウザでは`レスポンスボディ`のみが表示されるようになっていますが、実際には上記のような`レスポンスヘッダ`も付加されてWebサーバから返ってきます。
+
+レスポンスヘッダの中身にはセキュリティ上、サーバの*弱点となるような情報が含まれている*ことがあります。
+
+`netcat`コマンドを利用することで、余計な加工をされずにサーバ接続時の情報をそのまま扱うことが可能です。
+
+### netcat = network + cat ?
+
+netcatは、その名の通りnetwork対応のcatコマンドというイメージで使うことができます。そこでnetcatについて詳しく見ていく前に、まずはcatコマンドの動作について確認しておきましょう。何を今さらと思われるかもしれませんが、catコマンドの標準入出力に対する動作への理解が曖昧な場合、netcatをシェルスクリプトなどから利用する際につまずくことになります。
+
+catコマンドとはなんだろう
+catコマンドは、多くのUNIX/Linuxで基本となるコマンドです。これは何をするコマンドか、皆さん説明できるでしょうか。この質問をすると多くの場合、「catコマンドとは、指定されたファイルの内容を表示するコマンドである」という答えが返ってきます。これは、誤りとまでは言えませんが不正確です。
+
+たとえば次のようなコマンドラインでは、catコマンドにファイルを指定していません。
+
+```bash
+$ echo "Hello, World." | cat
+Hello, World.
+```
