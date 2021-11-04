@@ -223,3 +223,101 @@ $ echo "HELP" | nc mail.example.com 25
 214-2.0.0 For local information send email to Postmaster at your site.
 214 2.0.0 End of HELP info
 ```
+
+### バナー取得
+
+バナーとは、サービスが出力するメッセージの中で、ソフトウェアの名称やバージョン情報が含まれるものを指す。
+外部からバナーが取得可能な場合、そこには攻撃者にとって有益な情報が含まれることがある。
+
+#### Server ヘッダー
+
+```bash
+$ nc test.example.com 80
+HEAD / HTTP/1.0
+
+HTTP/1.1 200 OK
+Date: Thu, 03 Mar 2016 05:50:45 GMT
+Server: Apache/2.2.19 (Unix)
+Last-Modified: Sat, 20 Nov 2004 20:16:24 GMT
+Accept-Ranges: bytes
+Content-Length: 44
+Connection: close
+Content-Type: text/html
+```
+
+レスポンスヘッダー内の、Serverヘッダーに注目すると、`Server: Apache/2.2.19 (Unix)`という文字列が表示されており、こちらがバナーになる。
+こうしてバナーを取得することで、このホストでは**Apacheのバージョン2.2.19**が**UNIX環境**で動作していることが分かる。
+
+このような情報は攻撃者へのヒントとなるため、バナーが表示されないように設定する必要がある。
+Apacheのバナーを隠蔽する方法として、*設定ファイル(httpd.conf)*の*ServerTokensディレクティブ*に、**ProductOnly**という値を指定する。
+
+```bash
+# httpd.conf
+ServerTokens ProductOnly
+```
+
+上記の設定により、*Serverヘッダー*の出力をプロダクト名のみにすることができる。
+
+設定後にApacheを再起動して、以下のように`Server:Apache`というプロダクト名のみの表示となり、バナーが隠蔽できるようになる。
+
+```bash
+$ nc test.example.com 80
+
+HTTP/1.1 200 OK
+Date: Thu, 03 Mar 2016 05:57:11 GMT
+Server: Apache
+....(省略)....
+```
+
+#### X-Powered-By ヘッダー
+
+Webサーバーで注目されるバナーとしては、先ほどの`Serverヘッダー`以外に**X-Powered-Byヘッダー**が挙げられる。
+いくつかのソフトウェアがこのヘッダーを出力するが、主に**PHPのバージョン**情報が取得可能なヘッダーとして知られている。
+
+```bash
+$ nc test.example.com 80
+HEAD /list.php HTTP/1.0
+ 
+HTTP/1.1 200 OK
+Date: Thu, 10 Mar 2016 17:00:23 GMT
+Server: Apache
+X-Powered-By: PHP/5.3.11
+Connection: close
+Content-Type: text/html
+
+```
+
+**X-Powered-Byヘッダー**を確認すれば、*PHPのバージョン`5.3.11`*が利用されていることが分かる。
+X-Powered-ByヘッダーはPHPファイル(上記の例では/list.php)へのアクセス時にのみ表示され、皆さんが自分の環境を確認する際には、PHPファイルへHEADリクエストを送信する。
+
+PHPのバナーは、設定ファイル(**php.ini**)のexpose_phpディレクティブに、「**Off**」を指定することで隠蔽できる。
+
+この設定を行うと、次のように**X-Powered-Byヘッダー**自体が出力されなくなり、バナーを隠蔽することができる。
+
+```bash
+$ nc test.example.com 80
+HEAD /list.php HTTP/1.0
+
+HTTP/1.1 200 OK
+Date: Thu, 10 Mar 2016 17:03:13 GMT
+Server: Apache
+Connection: close
+Content-Type: text/html
+ 
+$
+```
+
+#### バナーの隠蔽
+
+攻撃者には情報を与えないためにも、バナーなどの情報は外部から取得できないようにする必要がある。
+しかし、バナーを隠蔽するべきかどうかというのは、一部に賛否両論があり、隠蔽することに意味がないという意見もある。
+
+その理由としては、「バナーを隠して情報を与えなかったとしても、利用しているソフトウェアのバージョンが古い場合、本質的な脆弱性の問題を解決していない」というものがある。
+
+しかし、バナーなどの情報を隠すことは、「攻撃者から攻撃対象として選定されなくなる」というメリットもあり、攻撃対象を選定するなら、バナーが隠蔽されていないよりは、表示される方を攻撃対象として狙いやすい。攻撃機会を少しでも減らすことができるなら、全く無駄とは言えない。
+
+他にも、[SHODAN](https://www.shodan.io/)に代表されるように、特定のバナー情報からインターネット上に存在するホストを検索できるWebサービスに載せられる可能性も無くなる。
+
+- https://www.shodan.io/
+
+
