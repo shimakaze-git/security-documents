@@ -42,7 +42,7 @@ $ systemctl status tor
 $ sudo apt install -y torbrowser-launcher
 ```
 
-## How to Configure
+## How to Configure of Etc
 
 `/etc/tor/torrc`が設定ファイルになる。
 
@@ -58,6 +58,10 @@ ExcludeNodes {jp},
 torproject公式による駄目なノードのリスト
 
 - https://onionoo.torproject.org/summary?flag=badexit
+
+## How to Configure
+
+Browser Settings
 
 ### Japanese Language
 
