@@ -35,8 +35,9 @@ print_help () {
 }
 
 setup_init () {
-    # 2つのディレクトリを削除する.
+    # gvm関連の3つのディレクトリを削除する.
     sudo rm -rf /opt/gvm
+    sudo rm -rf /etc/ld.so.conf.d/gvm.conf
     sudo rm -rf /tmp/gvm-source
 
     # cron情報を削除
@@ -58,6 +59,94 @@ setup_init () {
     systemctl reset-failed
 }
 
+apt_update () {
+    echo 'apt update'
+    apt update
+    apt upgrade -y    
+}
+
+create_gvm_user () {
+    # GVMユーザーを作成する.
+    useradd -r -U -G -d /opt/gvm -c "GVM (OpenVAS) User" -s /bin/bash gvm
+
+    # -s : ユーザーのログインシェル
+    # -c : コメント
+    # -d : ユーザーのホームディレクトリ（通常はユーザー名と同じにする）
+    # -M : ユーザーのホームディレクトリを作成しない
+    # -U : ユーザーと同じ名前のグループを作成する
+    # -G : ユーザーが属するセカンダリグループのリストを指定する
+    # -r : システムアカウントを作成する
+    # useradd -r -M -U -G sudo -s /usr/sbin/nologin gvm
+
+    mkdir /opt/gvm
+    chown gvm:gvm /opt/gvm
+}
+
+apt_install () {
+    # 必要なパッケージ類のインストール.
+    apt -y install gcc g++ make \
+        bison flex libksba-dev \
+        curl redis libpcap-dev \
+        cmake git pkg-config \
+        libglib2.0-dev libgpgme-dev libgnutls28-dev \
+        uuid-dev libssh-gcrypt-dev libldap2-dev \
+        gnutls-bin libmicrohttpd-dev libhiredis-dev \
+        zlib1g-dev libxml2-dev libradcli-dev \
+        clang-format libldap2-dev doxygen \
+        nmap gcc-mingw-w64 xml-twig-tools \
+        libical-dev perl-base heimdal-dev \
+        libpopt-dev libsnmp-dev python3-setuptools \
+        python3-paramiko python3-lxml python3-defusedxml \
+        python3-dev gettext python3-polib \
+        xmltoman python3-pip texlive-fonts-recommended \
+        xsltproc texlive-latex-extra rsync \
+        ufw ntp libunistring-dev \
+        git libnet1-dev graphviz \
+        graphviz-dev build-essential gnupg \
+        libpq-dev xmlstarlet zip \
+        rpm fakeroot dpkg \
+        nsis wget sshpass \
+        openssh-client socat snmp \
+        python3 smbclient \
+        nodejs \
+        --no-install-recommends -y
+
+    # yarn環境の整備
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+    apt update
+
+    apt -y install yarn
+
+    # addresses issue #7 on GH
+    # /usr/bin/yarn install
+    yarn install
+
+    # /usr/bin/yarn upgrade
+    yarn upgrade
+}
+
+# postgres関連の整備
+setup_postgres () {
+    # postgresをインストールして環境を整備する.
+    apt install \
+        postgresql postgresql-contrib  \
+        postgresql-server-dev-all postgresql-server-dev-12 \
+        --no-install-recommends -y
+    systemctl restart postgresql
+    sudo -Hiu postgres createuser gvm
+
+    # drop database gvmd
+    sudo -Hiu postgres psql -c "drop database gvmd;"
+
+    sudo -Hiu postgres createdb -O gvm gvmd
+    sudo -Hiu postgres psql -c 'create role dba with superuser noinherit;' gvmd
+    sudo -Hiu postgres psql -c 'grant dba to gvm;' gvmd
+    sudo -Hiu postgres psql -c 'create extension "uuid-ossp";' gvmd
+    sudo -Hiu postgres psql -c 'create extension "pgcrypto";' gvmd
+    systemctl restart postgresql
+    systemctl enable postgresql
+}
 
 ###################################
 # rootであることは必須
@@ -123,65 +212,21 @@ else
     echo "install_gvm.shを再実行し、プロンプトでバージョン番号を入力してください。"
     exit 1
 fi
+exit 1
 
 ##############################################################################
 # GVMのユーザーを作成し、必要なパッケージ類をインストールして、環境を整備する。
 ##############################################################################
-echo 'apt update'
-apt update
-apt upgrade -y 
+# apt_update
 
-# GVMユーザーを作成する.
-useradd -r -d /opt/gvm -c "GVM (OpenVAS) User" -s /bin/bash gvm
-mkdir /opt/gvm
-chown gvm:gvm /opt/gvm
+# gvmユーザー関連の環境を整備
+create_gvm_user
 
 # 必要なパッケージ類のインストール.
-apt -y install gcc g++ make \
-    bison flex libksba-dev \
-    curl redis libpcap-dev \
-    cmake git pkg-config \
-    libglib2.0-dev libgpgme-dev libgnutls28-dev \
-    uuid-dev libssh-gcrypt-dev libldap2-dev \
-    gnutls-bin libmicrohttpd-dev libhiredis-dev \
-    zlib1g-dev libxml2-dev libradcli-dev \
-    clang-format libldap2-dev doxygen \
-    nmap gcc-mingw-w64 xml-twig-tools \
-    libical-dev perl-base heimdal-dev \
-    libpopt-dev libsnmp-dev python3-setuptools \
-    python3-paramiko python3-lxml python3-defusedxml \
-    python3-dev gettext python3-polib \
-    xmltoman python3-pip texlive-fonts-recommended \
-    xsltproc texlive-latex-extra rsync \
-    ufw ntp libunistring-dev \
-    git libnet1-dev graphviz \
-    graphviz-dev --no-install-recommends
+# apt_install
 
-# yarn環境の整備
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-apt update
-apt -y install yarn
-
-# addresses issue #7 on GH
-# /usr/bin/yarn install
-yarn install
-
-# /usr/bin/yarn upgrade
-yarn upgrade
-
-# postgresをインストールして環境を整備する.
-apt -y install postgresql postgresql-contrib postgresql-server-dev-all
-systemctl restart postgresql
-sudo -Hiu postgres createuser gvm
-sudo -Hiu postgres psql -c "drop database gvmd;"
-sudo -Hiu postgres createdb -O gvm gvmd
-sudo -Hiu postgres psql -c 'create role dba with superuser noinherit;' gvmd
-sudo -Hiu postgres psql -c 'grant dba to gvm;' gvmd
-sudo -Hiu postgres psql -c 'create extension "uuid-ossp";' gvmd
-sudo -Hiu postgres psql -c 'create extension "pgcrypto";' gvmd
-systemctl restart postgresql
-systemctl enable postgresql
+# postgres関連の整備
+# setup_postgres
 
 ##############################################################################
 # GVM関連のパッケージをインストールする。
@@ -211,6 +256,23 @@ sudo -Hiu gvm mkdir /tmp/gvm-source
 cd /tmp/gvm-source
 pwd
 
+# Greenbone署名鍵のインポート
+# ダウンロードしたソースファイルの整合性を検証するためにGnuPGが使用される
+
+# Greenbone Community Signing公開鍵をダウンロードして、
+# 現在のユーザーのキーチェーンにインポートする必要がある
+curl -O https://www.greenbone.net/GBCommunitySigningKey.asc
+gpg --import GBCommunitySigningKey.asc
+
+# 鍵束内の鍵一覧を表示
+gpg --list-key
+
+gpg --edit-key 9823FAA60ED1E580
+# gpg> trust
+# Your decision? 5
+# Do you really want to set this key to ultimate trust? (y/N) y
+# gpg> quit
+
 if [ $GVMVERSION = "20" ]; then
     sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/gvm-libs.git
     sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/gvmd.git
@@ -222,29 +284,52 @@ if [ $GVMVERSION = "20" ]; then
     sudo -Hiu gvm git clone -b v20.8.1 https://github.com/greenbone/ospd.git
     sudo -Hiu gvm git clone https://github.com/greenbone/python-gvm.git
 elif [ $GVMVERSION = "21" ]; then
-    sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/gvm-libs.git
-    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/gvm-libs.git
+    # バージョンの設定
+    GVM_VERSION=21.4.3
+    GVMD_VERSION=21.4.4
 
+    # GVM-LIBS
+    GVM_LIBS_VERSION=$GVM_VERSION
+    sudo -Hiu gvm curl -f -L https://github.com/greenbone/gvm-libs/archive/refs/tags/v$GVM_LIBS_VERSION.tar.gz -o gvm-libs-$GVM_LIBS_VERSION.tar.gz
+    sudo -Hiu gvm curl -f -L https://github.com/greenbone/gvm-libs/releases/download/v$GVM_LIBS_VERSION/gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc -o gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc
+    sudo -Hiu gvm gpg --verify gvm-libs-$GVM_LIBS_VERSION.tar.gz.asc gvm-libs-$GVM_LIBS_VERSION.tar.gz
+    sudo -Hiu gvm tar -xvzf gvm-libs-$GVM_LIBS_VERSION.tar.gz
+    sudo -Hiu gvm mv gvm-libs-$GVM_LIBS_VERSION gvm-libs
+
+    # GVMD
+    sudo -Hiu gvm curl -f -L https://github.com/greenbone/gvmd/archive/refs/tags/v$GVMD_VERSION.tar.gz -o gvmd-$GVMD_VERSION.tar.gz
+    sudo -Hiu gvm curl -f -L https://github.com/greenbone/gvmd/releases/download/v$GVMD_VERSION/gvmd-$GVMD_VERSION.tar.gz.asc -o gvmd-$GVMD_VERSION.tar.gz.asc
+    sudo -Hiu gvm gpg --verify gvmd-$GVMD_VERSION.tar.gz.asc gvmd-$GVMD_VERSION.tar.gz
+    sudo -Hiu gvm tar -xvzf gvmd-$GVMD_VERSION.tar.gz
+    sudo -Hiu gvm mv gvmd-$GVMD_VERSION gvmd
+
+    # GSA
+    GSA_VERSION=$GVM_VERSION
+    sudo -Hiu gvm curl -f -L https://github.com/greenbone/gsa/archive/refs/tags/v$GSA_VERSION.tar.gz -o gsa-$GSA_VERSION.tar.gz
+    sudo -Hiu gvm curl -f -L https://github.com/greenbone/gsa/releases/download/v$GSA_VERSION/gsa-$GSA_VERSION.tar.gz.asc -o gsa-$GSA_VERSION.tar.gz.asc
+    sudo -Hiu gvm gpg --verify gsa-$GSA_VERSION.tar.gz.asc gsa-$GSA_VERSION.tar.gz
+    sudo -Hiu gvm tar -xvzf gsa-$GSA_VERSION.tar.gz
+    sudo -Hiu gvm gsa-$GSA_VERSION gsa
+
+    ls -la
+    ls -la /tmp/gvm-source
+
+    # sudo -Hiu gvm rm gsa-$GSA_VERSION.tar.gz
+    # sudo -Hiu gvm rm gsa-$GSA_VERSION.tar.gz.asc
+
+    # sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/gvm-libs.git
     # sudo -Hiu gvm git clone -b v21.4.2 https://github.com/greenbone/gvmd.git
-    # sudo -Hiu gvm git clone -b v21.4.4 https://github.com/greenbone/gvmd.git
-
     # sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/gsa.git
-    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/gsa.git
-
     # sudo -Hiu gvm git clone -b v21.4.0 https://github.com/greenbone/openvas-smb.git
-
     # sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/openvas.git
-    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/openvas.git
-
     # sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/ospd-openvas.git
-    # sudo -Hiu gvm git clone -b v21.4.3 https://github.com/greenbone/ospd-openvas.git
-
     # sudo -Hiu gvm git clone -b v21.6.1 https://github.com/greenbone/gvm-tools.git
-
     # sudo -Hiu gvm git clone -b v21.4.1 https://github.com/greenbone/ospd.git
-    # sudo -Hiu gvm git clone -b v21.4.4 https://github.com/greenbone/ospd.git
-
     # sudo -Hiu gvm git clone -b v21.6.0 https://github.com/greenbone/python-gvm.git
+
+    # sudo chown -R gvm:gvm /tmp/gvm-source
+    # ls -la
+    # pwd
 fi
 
 sudo -Hiu gvm cp --recursive /opt/gvm/* /tmp/gvm-source/
@@ -261,17 +346,29 @@ fi
 # TODO should refactor this to write out a script for the gvm user to execute like the ones later in 
 # this script leaving .bashrc alone. I initially used .bashrc just because it was automatically
 # executed when switching to the gvm user.
+
 sudo -Hiu gvm touch /opt/gvm/.bashrc
 sudo -Hiu gvm mv /opt/gvm/.bashrc /opt/gvm/.bashrc.bak # save original bashrc file 
-sudo -Hiu gvm touch /opt/gvm/.bashrc
+# sudo -Hiu gvm touch /opt/gvm/.bashrc
 sudo -Hiu gvm echo "export PKG_CONFIG_PATH=/opt/gvm/lib/pkgconfig:$PKG_CONFIG_PATH" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 
 # Build and Install GVM Libraries
 # GVMライブラリの構築とインストール.
+# gvm-libs-$GVM_LIBS_VERSION
 sudo -Hiu gvm echo "cd /opt/gvm/gvm-libs" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 sudo -Hiu gvm echo "mkdir build" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 sudo -Hiu gvm echo "cd build" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
-sudo -Hiu gvm echo "cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "ls -la"
+
+CMAKE="
+    cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm
+    -DCMAKE_BUILD_TYPE=Release
+    -DSYSCONFDIR=/opt/gvm/etc
+    -DLOCALSTATEDIR=/opt/gvm/var
+    -DGVM_PID_DIR=/opt/gvm/var/run/gvm
+"
+# sudo -Hiu gvm echo "cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm " | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo $CMAKE | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 sudo -Hiu gvm echo "make" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 sudo -Hiu gvm echo "make install" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 
@@ -292,11 +389,94 @@ sudo -Hiu gvm echo "make install" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 # sudo -Hiu gvm echo "sed -i 's/set (CMAKE_C_FLAGS_DEBUG\s.*\"\${CMAKE_C_FLAGS_DEBUG} \${COVERAGE_FLAGS}\")/set (CMAKE_C_FLAGS_DEBUG \"\${CMAKE_C_FLAGS_DEBUG} -Werror -Wno-error=deprecated-declarations\")/g' ../../openvas/CMakeLists.txt" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 # sudo -Hiu gvm echo "make" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
 # sudo -Hiu gvm echo "make install" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+
+# Build and Install Greenbone Vulnerability Manager
+# Greenbone VulnerabilityManagerを構築してインストールする.
+# Greenbone Vulnerability Management Daemon（gvmd）は、現在のGVMスタックのメインサービスです。
+# 認証、スキャン管理、脆弱性情報、レポート、アラート、スケジューリングなどを処理します。
+# ストレージバックエンドとして、PostgreSQLデータベースを使用します。
+
+sudo -Hiu gvm echo "cd /tmp/gvm-source/gvmd" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "mkdir build" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "cd build" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+
+CMAKE="
+    cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm
+    -DCMAKE_BUILD_TYPE=Release
+    -DLOCALSTATEDIR=/opt/gvm/var
+    -DSYSCONFDIR=/opt/gvm/etc
+    -DGVM_DATA_DIR=/opt/gvm/var
+    -DGVM_RUN_DIR=/opt/gvm/var/run/gvm
+    -DOPENVAS_DEFAULT_SOCKET=/opt/gvm/var/run/ospd/ospd-openvas.sock
+    -DGVM_FEED_LOCK_PATH=/opt/gvm/var/lib/gvm/feed-update.lock
+    -DDEFAULT_CONFIG_DIR=/opt/gvm/etc/default
+    -DLOGROTATE_DIR=/opt/gvm/etc/logrotate.d
+"
+# -DSYSTEMD_SERVICE_DIR=/lib/systemd/system \
+sudo -Hiu gvm echo $CMAKE | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "make" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "make install" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+
+# Build and Install Greenbone Secuirty Assistant
+# Greenbone SecuirtyAssistantを構築してインストールする
+# GSAは次の2つの部分で構成されている
+
+# - Webサーバー gsad
+# Webサーバーgsadは、Cプログラミング言語で記述されている。
+# 画像などの静的コンテンツを提供し、Webアプリケーション用のAPIを提供します。
+# 内部的には、GMPを使用してgvmdと通信します。
+
+# - Webアプリケーション GSA
+# WebアプリケーションはJavaScriptで記述されており、reactフレームワークを使用します。
+# アプリケーションを構築するためのnodejsと、
+# JavaScriptの依存関係を維持するためのyarn（またはnpm）が必要 です。
+
+sudo -Hiu gvm echo "export PKG_CONFIG_PATH=/opt/gvm/lib/pkgconfig:$PKG_CONFIG_PATH" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "cd /tmp/gvm-source/gsa" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "mkdir build" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "cd build" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+
+ID=`grep ^ID= /etc/os-release | sed 's/ID=//g'`
+if [[ $ID = "debian" ]] || [[ $ID = "kali" ]]; then
+    # sudo -Hiu gvm echo "cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm -DCMAKE_BUILD_TYPE=RELEASE" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+
+    CMAKE="
+        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm
+        -DCMAKE_BUILD_TYPE=Release
+        -DSYSCONFDIR=/opt/gvm/etc
+        -DLOCALSTATEDIR=/opt/gvm/var
+        -DGVM_RUN_DIR=/opt/gvm/var/run/gvm
+        -DGSAD_PID_DIR=/opt/gvm/var/run/gvm
+        -DLOGROTATE_DIR=/opt/gvm/var/etc/logrotate.d
+    "
+else
+    # sudo -Hiu gvm echo "cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+
+    CMAKE="
+        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/gvm
+        -DSYSCONFDIR=/opt/gvm/etc
+        -DLOCALSTATEDIR=/opt/gvm/var
+        -DGVM_RUN_DIR=/opt/gvm/var/run/gvm
+        -DGSAD_PID_DIR=/opt/gvm/var/run/gvm
+        -DLOGROTATE_DIR=/opt/gvm/var/etc/logrotate.d
+    "
+fi
+sudo -Hiu gvm echo $CMAKE | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "make" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+sudo -Hiu gvm echo "make install" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
+
 # Leave gvm environment and clean up
 sudo -Hiu gvm echo "exit" | sudo -Hiu gvm tee -a /opt/gvm/.bashrc
-su gvm
+# .bashrcの実行
+# su gvm
+source /opt/gvm/.bashrc
 sudo -Hiu gvm rm /opt/gvm/.bashrc
 sudo -Hiu gvm mv /opt/gvm/.bashrc.bak /opt/gvm/.bashrc
+
+# バージョンの設定
+echo $GVM_VERSION
+ls -la |grep gvm
+ls -la /opt/gvm/
 
 exit 1
 
