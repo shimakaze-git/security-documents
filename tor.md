@@ -44,6 +44,21 @@ $ sudo apt install -y torbrowser-launcher
 
 ## How to Configure
 
+`/etc/tor/torrc`が設定ファイルになる。
+
+- Torブラウザ : `tor-browser_ja-JP/Browser/TorBrowser/Data/Tor/torrc`
+- Tor本体 : `/etc/tor/torrc`
+
+```bash
+# ExcludeNodes
+# 使用しないサーバのニックネームを指定。複数の場合はカンマで区切って指定。
+ExcludeNodes {jp},
+```
+
+torproject公式による駄目なノードのリスト
+
+- https://onionoo.torproject.org/summary?flag=badexit
+
 ### Japanese Language
 
 - 1 : Tor Browserを起動
