@@ -93,6 +93,7 @@ FireFoxとChromeの拡張機能である「`VPN Free - Betternet VPN Proxy`」�
 `prontovpn`
 
 - https://protonvpn.com
+- [dashboard](https://account.protonvpn.com/dashboard)
 
 protonvpnをインストールする
 
