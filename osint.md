@@ -50,3 +50,34 @@ $ python theHarvester.py -d hogehoge -b google
 
 - https://whitemarkn.com/learning-ethical-hacker/theharvester/
 - https://kaworu.jpn.org/security/theharvester
+
+## Tools
+
+- https://kukublo.com/%E3%81%8A%E3%81%99%E3%81%99%E3%82%81osint%E3%83%84%E3%83%BC%E3%83%AB-buscador2-0-%E4%BD%BF%E3%81%84%E6%96%B9%E3%81%AE%E3%81%94%E7%B4%B9%E4%BB%8B/#Recon-ng
+
+- Recon-NG
+- Maltego
+- Creepy
+- Metagoofil
+- Tinfoleak
+- EmailHarvester
+- theHarvester
+- SpiderFoot
+- ExifTool
+
+
+### Buscador2.0
+
+- Domain Interact
+- Amass
+- The Harvester
+- EmailHarvester
+- Metagoofil
+- Sublist3r
+- Knock
+- Photon
+- Subbrute
+- Web HTTrack
+- EyeWitness
+- Recon-ng
+- Maltego
