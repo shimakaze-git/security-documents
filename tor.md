@@ -117,6 +117,10 @@ $ sudo apt install gnome-shell-extension-appindicator gir1.2-appindicator3-0.1
 
 上記が完了すれば`Protonvpn`がインストールされる。
 
+### prontovpn cli
+
+- https://protonvpn.com/support/linux-vpn-tool/
+
 ### おすすめの無料VPN
 
 [こちら](https://ja.vpnmentor.com/blog/%EF%BC%88%E6%9C%AC%E5%BD%93%E3%81%AB%E7%84%A1%E6%96%99%E3%81%AE%EF%BC%89%E3%83%99%E3%82%B9%E3%83%88vpn%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/)を参考にして、無料VPNを選択する。
