@@ -32,21 +32,21 @@ trello, twitter, vhost, virustotal, yahoo
 $ python theHarvester.py -d hogehoge -b google
 ```
 
--d, -domain : 検索する会社名またはドメインを設定
--l, -limit : 検索結果の件数を制限
--S, -start : 結果番号Xで開始、デフォルト=0
--g, -google-dork : Google検索にはGoogle Dorksを使用
--p, -proxies : リクエストにプロキシを使用し、proxies.yamlにプロキシを入力
--s, -shodan : Shodanを使用して、検出されたホストを照会
--screenshot : 解決したドメインのスクリーンショットを撮る、出力ディレクトリを指定
--v, –virtual-host : DNS解決でホスト名を確認し、バーチャルホストを検索
--e, –dns-server : ルックアップに使用するDNSサーバー
--t, –dns-tld : DNSのTLD拡張検出を行う、デフォルトはFalse
--r, –take-over: 買収されていないかチェック
--n, -dns-lookup : DNSサーバーの検索を有効
--c, -dns-brute : ドメインでDNSブルートフォースを行う
--f, -filename : 結果をHTMLやXMLファイルに保存
--b, -source : 収集するためのソースを設定
+- -d, -domain : 検索する会社名またはドメインを設定
+- -l, -limit : 検索結果の件数を制限
+- -S, -start : 結果番号Xで開始、デフォルト=0
+- -g, -google-dork : Google検索にはGoogle Dorksを使用
+- -p, -proxies : リクエストにプロキシを使用し、proxies.yamlにプロキシを入力
+- -s, -shodan : Shodanを使用して、検出されたホストを照会
+- -screenshot : 解決したドメインのスクリーンショットを撮る、出力ディレクトリを指定
+- -v, –virtual-host : DNS解決でホスト名を確認し、バーチャルホストを検索
+- -e, –dns-server : ルックアップに使用するDNSサーバー
+- -t, –dns-tld : DNSのTLD拡張検出を行う、デフォルトはFalse
+- -r, –take-over: 買収されていないかチェック
+- -n, -dns-lookup : DNSサーバーの検索を有効
+- -c, -dns-brute : ドメインでDNSブルートフォースを行う
+- -f, -filename : 結果をHTMLやXMLファイルに保存
+- -b, -source : 収集するためのソースを設定
 
 - https://whitemarkn.com/learning-ethical-hacker/theharvester/
 - https://kaworu.jpn.org/security/theharvester
