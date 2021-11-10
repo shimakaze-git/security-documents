@@ -319,3 +319,4 @@ https://mirror.ufs.ac.za/misc/
 - https://launchpad.net/~mrazavi/+archive/ubuntu/gvm
 - https://gist.github.com/ffund/f9c06f77569a3865e9ca92b9455bd90c#file-gvm-20-install-and-setup-L6
 - https://www.secure-iv.co.jp/blog/587
+- https://end0tknr.hateblo.jp/entry/20201126/1606367682
