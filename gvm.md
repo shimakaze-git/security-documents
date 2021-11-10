@@ -252,8 +252,70 @@ $ sudo systemctl restart gsad
 
 https://mirror.ufs.ac.za/misc/
 
+## Scan
+
+[Targets](http://localhost:9392/targets)にアクセスして、画面左上の☆をクリックすることで、`Target`を追加することができる。
+
+下記の画像の通り、名前(Name)、IPアドレス(Hosts:Manual)を設定します。
+**Port list**は*スキャンするポートの種類*を選択する以下3つから指定。
+
+- All IANA assigned TCP : TCPの全てのポートをスキャン
+- All IANA assigned TCP and UDP : TCPとUDPの全てのポートをスキャン
+- All TCP and Nmap top 100 UDP : TCPの全てのポートとNmapでスキャンする100のUDPポート
+
+**Alive Test**はスキャン方法を選択。
+
+- Scan Config Default
+- ICMP Ping
+- TCP-ACK Service Ping
+- TCP-SYN Service Ping
+- ARP Ping
+- ICMP & TCP-ACK Service Ping
+- ICMP & ARP Ping
+- TCP-ACK Service & ARP Ping
+- ICMP, TCP-ACK Service & ARP Ping
+- Consider Alive : **ping応答なしでも診断を行う**
+
+![scan_target](./scan_target.png)
+
+---
+
+[Tasks](http://localhost:9392/tasks)にアクセスして、画面左上の☆をクリックして、`New Task`をクリックすることで追加することができる。
+
+**Name**でタスク名をつける。
+
+下記画像の通り、`Scan Targets`からプルダウンで*Target*を選択する。
+
+![scan_task](./scan_task.png)
+
+**Scanner**
+
+- OpenVAS Default
+- CVE
+
+**Scan Config**
+
+- Base
+- Full and fast : 開いているポートに対する標準的な脆弱性の検査。但し被検査機器にダメージを与えない項目のみ
+- Full and Fast ultimate : 開いているポートに対する脆弱性の検査。サービス停止やシャットダウンを伴う可能性がある。
+- Full and very deep : 開いているポートに対する脆弱性の検査に加え、脆弱性DB（NVT）に掲載されている全ポートに対して脆弱性を検査。但し被検査機器にダメージを与えない項目のみ。
+- Full and very deep ultimate : 開いているポートに対する脆弱性の検査に加え、脆弱性DB（NVT）に掲載されている全ポートに対して脆弱性を検査。サービス停止やシャットダウンを伴う可能性がある。
+
+以下の3つはターゲットシステムの発見やターゲットシステムで使用しているOSやミドルウェア、ハードウェアを検出するコンフィグでは脆弱性の検出
+
+- Discovery
+- Host Discovery 
+- System Discovery
+
+**QoD**は検出結果の信頼度を指す。
+
+`Save`ボタンを押してタスクを作成して、再生ボタンを押すことでスキャンを開始する。
+
+
+
 ## Link
 
 - https://linuxmeditation.com/greenbone-security-assistant-on-ubuntu-server
 - https://launchpad.net/~mrazavi/+archive/ubuntu/gvm
 - https://gist.github.com/ffund/f9c06f77569a3865e9ca92b9455bd90c#file-gvm-20-install-and-setup-L6
+- https://www.secure-iv.co.jp/blog/587
