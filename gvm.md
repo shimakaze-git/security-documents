@@ -224,7 +224,19 @@ $ sudo systemctl status gvmd
 $ sudo systemctl status gsad
 ```
 
+デーモンの再起動
+
+```bash
+$ sudo systemctl daemon-reload
+
+# ReStart
+$ sudo systemctl restart ospd-openvas
+$ sudo systemctl restart gvmd
+$ sudo systemctl restart gsad
+```
+
 ## Link
 
 - https://linuxmeditation.com/greenbone-security-assistant-on-ubuntu-server
 - https://launchpad.net/~mrazavi/+archive/ubuntu/gvm
+- https://gist.github.com/ffund/f9c06f77569a3865e9ca92b9455bd90c#file-gvm-20-install-and-setup-L6
