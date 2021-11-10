@@ -52,7 +52,20 @@ $ sudo apt install gvm
 # gvm-tools
 ```
 
-- 5 : NVT/SCAP/CERT/GVMD_DATAデータの更新
+- 5 : GSAへのアクセス
+
+WEBインターフェースであるGSAへのアクセスは以下のURLを打ち込めば大丈夫です。
+
+https://127.0.0.1:9392
+
+ユーザー名とパスワードが求められますが、以下が初期ユーザー名とパスワードになります。
+
+```bash
+# username : admin
+# password : admin
+```
+
+- 6 : NVT/SCAP/CERT/GVMD_DATAデータの更新
 
 スキャンのためには、脆弱性方法をダウンロードして更新する必要があります。
 ダウンロードするのは以下の4つからです。
@@ -100,18 +113,13 @@ $ sudo -E -u gvm -g gvm greenbone-feed-sync --type SCAP
 $ sudo -E -u gvm -g gvm greenbone-feed-sync --type GVMD_DATA
 ```
 
-- 6 : GSAへのアクセス
+`http://localhost:9392/feedstatus`にアクセスして、更新が成功すると以下の画像のように`Status`部分が全て*Current*になります。(この画像では一部が**2 days old**になっていますが、最新なら全てが*Current*になります。)
 
-WEBインターフェースであるGSAへのアクセスは以下のURLを打ち込めば大丈夫です。
+![feed_status](./feed_status.png)
 
-https://127.0.0.1:9392
+更新処理ですが、何度かエラーを吐いて失敗します。
+詳細については[こちら(greenbone-feed-sync)](#greenbone-feed-sync)を参照してください。
 
-ユーザー名とパスワードが求められますが、以下が初期ユーザー名とパスワードになります。
-
-```bash
-# username : admin
-# password : admin
-```
 
 ## Settings
 
@@ -234,6 +242,13 @@ $ sudo systemctl restart ospd-openvas
 $ sudo systemctl restart gvmd
 $ sudo systemctl restart gsad
 ```
+
+## greenbone-feed-sync
+
+内部では`rsync`コマンドを使用しています。接続先である`rsync://feed.community.greenbone.net`ですが、何度か接続していると切断されたり、混雑している時には接続が失敗したりします。
+
+サーバーはドイツにあります。ドイツの09:00~21:00は、17:00~05:00です。自分が試した時は、アクセスが切断されたりするのは主にこの時間帯です。
+日本で06:00~15:00に更新処理をかけてみるとうまくいくかもしれません。
 
 ## Link
 
