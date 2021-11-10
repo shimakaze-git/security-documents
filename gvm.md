@@ -250,6 +250,8 @@ $ sudo systemctl restart gsad
 サーバーはドイツにあります。ドイツの09:00〜21:00は、17:00〜05:00です。自分が試した時は、アクセスが切断されたりするのは主にこの時間帯です。
 日本からなら06:00〜15:00に更新処理をかけてみるとうまくいくかもしれません。
 
+https://mirror.ufs.ac.za/misc/
+
 ## Link
 
 - https://linuxmeditation.com/greenbone-security-assistant-on-ubuntu-server
