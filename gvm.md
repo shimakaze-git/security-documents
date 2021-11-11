@@ -3,6 +3,8 @@
 gvmバージョン21.04をUbuntu 20.04へのインストール方法。
 ソースからのインストール方法だとかなり時間がかかり、気を使わないといけないこともたくさんあって大変です。
 
+ちなみにソースインストールの方法に関しては[こちら](https://www.libellux.com/openvas/#troubleshooting)を参照してください。
+
 aptのパッケージ管理で良いものがないかと探していたら、[こちら](https://launchpad.net/~mrazavi/+archive/ubuntu/gvm)の方が作っていました。
 
 インストール方法と設定方法についてを解説。
@@ -209,6 +211,27 @@ $ sudo -E -u gvm -g gvm gvmd --modify-setting 78eceaec-3385-11ea-b237-28d2446121
 $ sudo -E -u gvm -g gvm gvmd --rebuild
 ```
 
+## Logs
+
+ログの場所は以下3つになります。
+
+```bash
+$ /var/log/gvm/gvmd.log
+$ /var/log/gvm/ospd-openvas.log
+$ /var/log/gvm/openvas.log
+```
+
+scan実行時に`tail -f`でログを見ながら実行すれば、エラーが発生した際などにも原因を把握しやすくもなります。
+
+### Log settings files
+
+```
+$ /etc/openvas/openvas_log.conf
+
+$ /etc/gvm/gvmd_log.conf
+$ /etc/gvm/ospd-openvas.conf
+```
+
 ## Check Update & Status
 
 以下で更新を定期的に確認する必要があります。
@@ -311,8 +334,28 @@ https://mirror.ufs.ac.za/misc/
 
 `Save`ボタンを押してタスクを作成して、再生ボタンを押すことでスキャンを開始する。
 
+scan実行時には[Logs](#Logs)にも説明したログを参照しながらやってみると、実際にスキャンの様子を見ることができます。
 
+### tcpdump
 
+scan実行の様子を詳細に見るために、tcpdumpコマンドで実際に通信を飛ばしている様子を見ることができます。
+
+```bash
+$ tcpdump host [target_ip]
+```
+
+### Reports
+
+スキャンが完了したのにレポートがきちんと出力されないことがまれにあるので、以下のコマンドでキャッシュに溜まっているレポートを吐き出せる。
+
+```bash
+# create env
+$ export $(sudo cat /etc/default/gvmd-pg)
+
+$ sudo -E -u gvm -g gvm gvmd --optimize=rebuild-report-cache
+```
+
+<!-- https://www.libellux.com/openvas/#troubleshooting -->
 ## Link
 
 - https://linuxmeditation.com/greenbone-security-assistant-on-ubuntu-server
