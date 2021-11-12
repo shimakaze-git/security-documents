@@ -68,3 +68,5 @@ MACはセキュリティポリシーに従ったアクセス制限をrootユー�
 - MCS(Mucti Category Security) : コンテナ毎の権限の分離
 - MLS(Multi Level Security) : 軍用のアクセス制御
 
+[強制アクセス制御（SELinux）の基礎](https://thinkit.co.jp/article/13296)
+
