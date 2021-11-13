@@ -70,3 +70,4 @@ MACはセキュリティポリシーに従ったアクセス制限をrootユー�
 
 [強制アクセス制御（SELinux）の基礎](https://thinkit.co.jp/article/13296)
 
+- https://thinkit.co.jp/article/13296
