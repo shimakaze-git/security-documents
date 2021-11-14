@@ -266,15 +266,16 @@ int main() {
 
 呼び出し元のrbpをスタックにpushします。
 
-呼び出し元であるアドレスがRBPレジスタ内にあるため、RBP内のアドレスをスタックにpushします。
+呼び出し元であるアドレスがRBPレジスタ内にあるため、RBPレジスタ内の値(アドレス)をスタックにpushします。
 
 **mov %rsp,%rbp**
 
 rbpにrspをコピーします。
-rbpレジスタ内にrspの値をコピーします。
+rspの値をrbpレジスタ内にコピーします。
 
 関数内ではrbpを基準メモリアドレスとします。
 これにより`rbp = rsp`になります。
+(正確には後の`sub $0x20,%rsp`などの命令でrspレジスタ内の値を減算処理することでrspレジスタの値を更新している。)
 
 ![function_prologue](./function_prologue.png)
 
@@ -296,7 +297,9 @@ mov %rbp,%rsp
 pop %rbp
 ```
 
-rspレジスタにrbpの値をコピーして呼び出し元のrbpをスタックからpopします。
+rspレジスタにrbpレジスタ内の値をコピーする。
+そして、pop命令で呼び出し元のアドレスをpopしてrbpレジスタに書き込みます。
+
 つまり`Function prologueの逆処理`を行う。
 
 leaveq命令後のスタック状態は次の通り
@@ -393,10 +396,21 @@ $ gdb ./add
 # ソースコード表示
 (gdb) l
 
+# アセンブルを表示
+(gdb) disassemble
 
+# レジスタの内容を表示
+(gdb) info register rip rsp rbp
 ```
 
-ASLR
+- https://gist.github.com/riywo/5480889
+- https://qiita.com/tobira-code/items/75d3034aed8bb9828981
+- https://codezine.jp/article/detail/420?p=3
 
 ret2esp
 
+データ実行防止機能であるDEP（Data Execute Prevention）機構
+
+アドレス空間のランダム化機能であるASLR（Address Space Layout Randomization）機構
+
+これらを回避するReturn Oriented Programmingなどの攻撃手法も登場
