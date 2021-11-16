@@ -341,12 +341,18 @@ Date: Thu, 03 Mar 2016 05:42:05 GMT
 Server: Apache
 Location: http://192.168.2.66/img/
 Connection: close
-Content-Type: text/html; charset=iso-8859-1
+Content-Type: text/html; charset=iso-8859-
 
 ```
 
 レスポンスヘッダに**Location**ヘッダに`192.168.2.66`というプライベートIPアドレスが表示されていることがわかると思います。
 
 - https://www.intellilink.co.jp/column/security/2016/041300.aspx
+
+# ルーター間のプロトコル
+
+- OSPF
+- RIP
+
 
 
