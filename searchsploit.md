@@ -30,4 +30,16 @@ $ cp -n /opt/exploit-database/.searchsploit_rc ~/
 ・package_array : 利用可能なパッケージマネージャー(aptやbrewなど)がある場合に使用するパッケージ名
 ```
 
+## 使い方
+
+- https://www.exploit-db.com/searchsploit
+
+```Bash
+# タイトルで検索をかける
+$ searchsploit -t {name}
+
+# リンクを表示する
+$ searchsploit {name} -w
+```
+
 - https://4siteadvantage.com/linux/how-to-install-exploit-db-searchsploit-on-ubuntu-19/
